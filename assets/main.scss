@@ -1,0 +1,179 @@
+* {
+  padding: 0;
+  margin: 0;
+  font-size: 100%;
+  line-height: 1;
+  font-weight: normal;
+  border: none;
+}
+
+$text-color: #e9ecf1;
+
+html {
+  background-color: #494f5c;
+}
+
+body {
+  font-family: sans-serif;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+body, a, a:visited {
+  color: $text-color;
+}
+
+a:active {
+  color: #d27070;
+}
+
+header {
+  display: flex;
+  a {
+    padding: 2em;
+    display: block;
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  > a {
+    flex-grow: 1;
+  }
+  nav {
+    flex-grow: 0;
+  }
+  nav a {
+    padding: 2em;
+  }
+}
+
+footer {
+  padding: 2em;
+  text-align: center;
+}
+
+main {
+  padding: 2em;
+}
+
+p {
+  line-height: 1.5;
+}
+
+*+p, p+h1, p+svg, p+div {
+  margin-top: 1em;
+}
+
+h1 {
+  font-size: 200%;
+  margin-bottom: 1em;
+  a, a:visited {
+    color: $text-color;
+  }
+}
+
+article+aside {
+  margin-top: 1em;
+}
+
+li+li {
+  margin-top: 1em;
+}
+
+li {
+  margin-left: 1em;
+}
+
+.paging-controls {
+  width: 140px;
+  height: 40px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  button, .page-indicator {
+    display: block;
+    height: 100%;
+    line-height: 40px;
+    text-align: center;
+  }
+  .page-indicator {
+    width: 60px;
+  }
+  button {
+    display: block;
+    width: 40px;
+    cursor: pointer;
+    outline: none;
+  }
+}
+
+$board-bg-color: #999;
+$board-fg-color: #aaa;
+$board-highlight-color: #b0b0b0;
+$white-color: #eee;
+$black-color: #333;
+$stroke-width: 0.2;
+$border-width: 0.07;
+
+svg {
+  background-color: #5a6272;
+  g.board {
+    polygon.border {
+      fill: $board-bg-color;
+      stroke: $board-bg-color;
+      stroke-linejoin: round;
+      stroke-width: $border-width;
+    }
+    .cell {
+      polygon {
+        stroke-linejoin: round;
+        stroke-linecap: round;
+        stroke-width: $stroke-width;
+      }
+      &.white polygon {
+        fill: $white-color;
+        stroke: $white-color;
+      }
+      &.black polygon {
+        fill: $black-color;
+        stroke: $black-color;
+      }
+      &.empty polygon {
+        fill: $board-fg-color;
+        stroke: $board-fg-color;
+      }
+      &.empty:hover polygon {
+        fill: $board-highlight-color;
+        stroke: $board-highlight-color;
+      }
+    }
+    polygon.edging {
+      stroke-linejoin: round;
+      stroke-width: $border-width;
+      &.black { stroke: $black-color; fill: $black-color; }
+      &.white { stroke: $white-color; fill: $white-color; }
+    }
+    polyline {
+      stroke-width: $border-width;
+      &.black { stroke: $black-color; }
+      &.white { stroke: $white-color; }
+      fill: none;
+      stroke-linejoin: round;
+    }
+    path {
+      fill: none;
+      stroke: red;
+      stroke-width: 0.1;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  }
+}
+
+script[type="application/json"] {
+  display: block;
+  visibility: hidden;
+  height: 300px;
+}

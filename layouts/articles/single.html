@@ -1,0 +1,11 @@
+{{ define "main" }}
+<h1><a href="{{ .RelPermalink }}">{{ .Title }}</a></h1>
+<article id="content">
+  {{ .Content }}
+</article>
+<aside>
+  {{ with .PrevInSection }}
+  <div>Next: <a href="{{.RelPermalink}}"> {{.Title}}</a></div>
+  {{ end }}
+</aside>
+{{ end }}

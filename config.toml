@@ -1,0 +1,5 @@
+baseURL = "http://hexagain.com/"
+languageCode = "en-us"
+title = "Hexagain"
+disableHugoGeneratorInject = true
+sectionPagesMenu = "main"

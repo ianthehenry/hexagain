@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0">
+    <title>{{ block "title" . }}{{ .Site.Title }}{{ end }}</title>
+    {{ $style := resources.Get "main.scss" | toCSS | minify | fingerprint }}
+    <link rel="stylesheet" type="text/css" href="{{ $style.RelPermalink }}">
+  </head>
+  <body>
+    <header><a id="home-link" href="/">Hexagain</a>
+      <nav class="sidebar-nav">
+        {{ $currentPage := . }}
+        {{ range .Site.Menus.main }}
+        <a class="sidebar-nav-item{{if or ($currentPage.IsMenuCurrent "main" .) ($currentPage.HasMenuCurrent "main" .) }} active{{end}}" href="{{ .URL }}" title="{{ .Title }}">{{ .Name }}</a>
+        {{ end }}
+      </nav>
+    </header>
+    <main>{{ block "main" . }}{{ end }}</main>
+    <footer><a href="https://ianthehenry.com/">Ian Henry</a> made this</footer>
+    {{ $script := resources.Get "game.js" | fingerprint }}
+    <script type="text/javascript" src="{{ $script.RelPermalink }}"></script>
+  </body>
+</html>
