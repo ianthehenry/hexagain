@@ -1,0 +1,19 @@
+$text-color: #e9ecf1;
+
+h1 {
+  a, a:visited {
+    color: $text-color;
+  }
+}
+
+html {
+  background-color: #494f5c;
+}
+
+body, a, a:visited {
+  color: $text-color;
+}
+
+a:active {
+  color: #d27070;
+}

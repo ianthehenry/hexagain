@@ -1,0 +1,5 @@
+(executable
+ (name hexagain_server)
+ (libraries hexagain core async websocket-async)
+ (preprocess (pps ppx_jane))
+ )

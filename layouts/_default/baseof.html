@@ -18,7 +18,7 @@
     </header>
     <main>{{ block "main" . }}{{ end }}</main>
     <footer><a href="https://ianthehenry.com/">Ian Henry</a> made this</footer>
-    {{ $script := resources.Get "game.js" | fingerprint }}
+    {{ $script := resources.Get "main.js" | fingerprint }}
     <script type="text/javascript" src="{{ $script.RelPermalink }}"></script>
   </body>
 </html>

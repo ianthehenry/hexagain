@@ -1,0 +1,30 @@
+body {
+  font-family: sans-serif;
+  font-size: 14pt;
+}
+
+p {
+  line-height: 1.5;
+}
+
+*+p, p+h1, p+svg, p+div, *+h1 {
+  margin-top: 1em;
+}
+
+h1 {
+  font-size: 200%;
+  margin-bottom: 1em;
+}
+
+li+li {
+  margin-top: 1em;
+}
+
+li {
+  margin-left: 1em;
+}
+
+footer {
+  text-align: center;
+  font-size: 50%;
+}

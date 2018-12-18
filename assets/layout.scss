@@ -1,0 +1,34 @@
+body {
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+header {
+  height: 80px;
+  display: flex;
+  padding: 0 2em;
+  a {
+    line-height: 80px;
+    display: block;
+    height: 100%;
+  }
+  > a {
+    flex-grow: 1;
+  }
+  nav {
+    flex-grow: 0;
+  }
+}
+
+main {
+  padding: 2em;
+}
+
+footer {
+  padding: 2em;
+}
+
+article+aside {
+  margin-top: 1em;
+}

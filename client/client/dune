@@ -1,0 +1,5 @@
+(executable
+  (name hexagain_client)
+  (libraries core_kernel async_rpc_kernel async_kernel hexagain async_js incr_dom sexp_pretty)
+  (preprocess (pps ppx_jane js_of_ocaml-ppx))
+  )

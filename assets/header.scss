@@ -1,0 +1,12 @@
+header {
+  a {
+    text-decoration: none;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+#home-link {
+  font-size: 200%;
+}

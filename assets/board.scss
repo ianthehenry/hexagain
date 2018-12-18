@@ -1,0 +1,113 @@
+.paging-controls {
+  width: 140px;
+  height: 40px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  button, .page-indicator {
+    display: block;
+    height: 100%;
+    line-height: 40px;
+    text-align: center;
+  }
+  .page-indicator {
+    width: 60px;
+  }
+  button {
+    display: block;
+    width: 40px;
+    cursor: pointer;
+    outline: none;
+    background-color: #aaa;
+    &:hover { background-color: #bbb; }
+    &:active { background-color: #b0b0b0; }
+  }
+  
+  button.prev-state {
+    border-radius: 6px 0 0 6px;
+  }
+  button.next-state {
+    border-radius: 0 6px 6px 0;
+  }
+}
+
+$board-bg-color: #8f8f8f;
+$board-fg-color: #aaa;
+$white-color: #eee;
+$black-color: #333;
+$stroke-width: 0.2;
+$border-width: 0.1;
+
+svg {
+  width: 100%;
+  height: auto;
+
+  .label-container {
+    .hit-detector {
+      opacity: 0;
+    }
+    .label {
+      user-select: none;
+      pointer-events: none;
+      font-size: 0.25px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      fill: #888;
+      z-index: 100;
+      opacity: 0;
+    }
+  }
+  .label-container:hover .label {
+    opacity: 1;
+  }
+  g.board {
+    .board-padding {
+      stroke: $board-fg-color;
+      stroke-linejoin: round;
+      stroke-width: 1.3;
+    }
+    .border {
+      fill: $board-bg-color;
+      stroke: $board-bg-color;
+      stroke-linejoin: round;
+      stroke-width: 1 + $border-width;
+    }
+    .hex {
+      stroke-linejoin: round;
+      stroke-linecap: round;
+      stroke-width: $stroke-width;
+      fill: $board-fg-color;
+      stroke: $board-fg-color;
+    }
+    .stone, .edge-marker {
+      &.white { fill: $white-color; }
+      &.black { fill: $black-color; }
+    }
+    .annotation {
+      pointer-events: none;
+    }
+    line.annotation, path.annotation {
+      fill: none;
+      stroke: orange;
+      stroke-width: 0.05;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    circle.annotation {
+      fill: orange;
+    }
+  }
+}
+
+script[type="application/json"] {
+  display: block;
+  visibility: hidden;
+  height: 300px;
+}
+
+.sexp {
+  width: 100%;
+  height: 200px;
+  white-space: pre;
+  font-family: monospace;
+}

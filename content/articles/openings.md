@@ -1,7 +1,9 @@
 ---
-title: "Pie Rule"
+title: "Openings"
 weight: 4
 ---
+
+# TODO
 
 When playing with the pie rule, where's a good first move?
 
