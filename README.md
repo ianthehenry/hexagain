@@ -2,6 +2,8 @@
 
 It's a website? I guess?
 
+Deployed to https://hexagain.com.
+
 ## Building the site
 
 Building the site requires `hugo` and `postcss-cli`. Install `hugo` with your system package manager, and `postcss-cli` with `yarn`:
