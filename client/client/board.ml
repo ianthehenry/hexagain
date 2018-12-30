@@ -276,20 +276,26 @@ let render_state state ~inject =
                 center
                 (0.15 *. apothem)
                 [Attr.classes ["edge-marker"; color_class color]]) )
+    |> Node.svg "g" ~key:"edge-decorations" []
   in
   let border =
     let points = edge_pieces |> Location.sort_border |> List.map ~f:position in
     Svg.polygon points [Attr.class_ "border"]
   in
-  let hexes = List.map locations ~f:(get_hex ~classes:["hex"]) in
+  let hexes =
+    List.map locations ~f:(get_hex ~classes:["hex"]) |> Node.svg "g" ~key:"hexes" []
+  in
   let stones =
     List.map stones ~f:(fun (color, location) ->
         Svg.circle
           (position location)
           (0.7 *. apothem)
           [Attr.classes ["stone"; color_class color]] )
+    |> Node.svg "g" ~key:"stones" []
   in
-  let annotations = List.map annotations ~f:render_annotation in
+  let annotations =
+    Node.svg "g" ~key:"annotations" [] (List.map annotations ~f:render_annotation)
+  in
   let labels =
     List.map locations ~f:(fun location ->
         let label_hit_detector =
@@ -310,12 +316,13 @@ let render_state state ~inject =
           ~key:(Location.to_string location)
           [Attr_.transform (Translate (position location)); Attr.class_ "label-container"]
           [label_hit_detector; label] )
+    |> Node.svg "g" ~key:"labels" []
   in
   let board =
     Node.svg
       "g"
       [Attr.class_ "board"; Attr_.transform board_transform]
-      (List.concat [[border]; edge_decorations; hexes; stones; annotations; labels])
+      [border; edge_decorations; hexes; stones; annotations; labels]
   in
   let view_box =
     match rotation with
