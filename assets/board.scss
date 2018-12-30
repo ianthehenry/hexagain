@@ -37,6 +37,7 @@ $white-color: #eee;
 $black-color: #333;
 $stroke-width: 0.2;
 $border-width: 0.1;
+$annotation-color: #ffa141;
 
 svg {
   width: 100%;
@@ -88,13 +89,13 @@ svg {
     }
     line.annotation, path.annotation {
       fill: none;
-      stroke: orange;
+      stroke: $annotation-color;
       stroke-width: 0.05;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
     circle.annotation {
-      fill: orange;
+      fill: $annotation-color;
     }
   }
 }
