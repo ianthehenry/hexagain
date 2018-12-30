@@ -6,3 +6,4 @@ public/
 *.bs.js
 npm-debug.log
 client/_build/
+node_modules/
