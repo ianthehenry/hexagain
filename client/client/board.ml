@@ -159,13 +159,13 @@ let render_annotation annotation =
       let span_direction = Location.direction_between_exn span span' in
       let control1 =
         Point.average
-          0.75
+          0.9
           (position span)
           (position (Location.in_direction span (Direction.inverse span_direction)))
       in
       let control2 =
         Point.average
-          0.75
+          0.9
           (position span')
           (position (Location.in_direction span' span_direction))
       in
@@ -180,6 +180,18 @@ let render_annotation annotation =
     Svg.line (position from) (position to_) [Attr.class_ "annotation"]
   | Dot at ->
     Svg.circle (position at) 0.1 [Attr.class_ "annotation"]
+  | Star at ->
+    let corner_line first_corner =
+      let line_radius = 0.3 *. apothem in
+      Svg.line
+        (point_at_corner line_radius first_corner)
+        (point_at_corner line_radius ((first_corner + 3) % 6))
+        [Attr_.transform (Rotation 30)]
+    in
+    Node.svg
+      "g"
+      [Attr.class_ "annotation"; Attr_.transform (Translate (position at))]
+      [corner_line 0; corner_line 1; corner_line 2]
 ;;
 
 let testing pred x = if pred x then Some x else None

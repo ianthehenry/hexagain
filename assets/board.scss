@@ -87,7 +87,7 @@ svg {
     .annotation {
       pointer-events: none;
     }
-    line.annotation, path.annotation {
+    g.annotation line, line.annotation, path.annotation {
       fill: none;
       stroke: $annotation-color;
       stroke-width: 0.05;
