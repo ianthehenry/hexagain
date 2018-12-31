@@ -74,5 +74,4 @@ There's probably some real way to do this.
     annotation correctly
 - I think the edge color markers look better as triangles
 - there's no reason to show labels on boards with edge templates
-- paging's modulo behavior is annoying
 - the overall theme is bad

@@ -386,8 +386,9 @@ module Model = struct
   let state_count t = Array.length t.states
 
   let change_state t delta =
-    let state_count = state_count t in
-    {t with state_index = (t.state_index + delta + state_count) % state_count}
+    { t with
+      state_index = Int.clamp_exn (t.state_index + delta) ~min:0 ~max:(state_count t - 1)
+    }
   ;;
 end
 
