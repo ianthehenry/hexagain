@@ -68,7 +68,11 @@ There's probably some real way to do this.
 # TODO
 
 - the SVG viewbox is wrong when there's a non-rhomboidal board
-- annotation stuff
+- annotation editing stuff
   - there's no feedback when you're drawing annotations
   - if the mouseup event happens outside a hex, it doesn't clear the start
     annotation correctly
+- I think the edge color markers look better as triangles
+- there's no reason to show labels on boards with edge templates
+- paging's modulo behavior is annoying
+- the overall theme is bad
