@@ -231,6 +231,17 @@ module Edge = struct
   ;;
 end
 
+let twice x = x, x
+let smaller ~compare a b = if compare a b < 0 then a else b
+let larger ~compare a b = if compare a b < 0 then b else a
+
+let min_and_max_elt_exn list ~compare =
+  List.fold
+    ~init:(twice (List.hd_exn list))
+    (List.tl_exn list)
+    ~f:(fun (min, max) el -> smaller ~compare min el, larger ~compare max el)
+;;
+
 let render_state state ~inject =
   let open Vdom in
   let {Board_state.dimensions; rotation; annotations; stones; disabled} = state in
@@ -339,12 +350,15 @@ let render_state state ~inject =
   let view_box =
     match rotation with
     | Flat ->
-      { Rect.origin = {Point.x = -.apothem; y = -.radius}
-      ; size =
-          { Size.width =
-              (apothem *. float (2 * dimensions.width))
-              +. (apothem *. float (dimensions.height - 1))
-          ; height = (spacing *. float (dimensions.height - 1)) +. (2.0 *. radius) } }
+      let positions = List.map locations ~f:position in
+      let left, right =
+        List.map positions ~f:Point.x |> min_and_max_elt_exn ~compare:Float.compare
+      in
+      let top, bottom =
+        List.map positions ~f:Point.y |> min_and_max_elt_exn ~compare:Float.compare
+      in
+      Rect.create ~left ~right ~top ~bottom
+      |> Rect.pad ~horizontal:apothem ~vertical:radius
     | Rotated ->
       { Rect.origin = {Point.x = -.radius; y = -.apothem *. float dimensions.height}
       ; size =
@@ -355,12 +369,13 @@ let render_state state ~inject =
   let view_box =
     Rect.pad
       view_box
-      0.25
-      (match rotation with
-      | Rotated ->
-        0.25
-      | Flat ->
-        0.2)
+      ~horizontal:0.25
+      ~vertical:
+        (match rotation with
+        | Rotated ->
+          0.25
+        | Flat ->
+          0.2)
   in
   let max_height = view_box.size.height *. 60.0 in
   Node.svg

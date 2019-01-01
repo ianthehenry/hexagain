@@ -67,7 +67,6 @@ There's probably some real way to do this.
 
 # TODO
 
-- the SVG viewbox is wrong when there's a non-rhomboidal board
 - annotation editing stuff
   - there's no feedback when you're drawing annotations
   - if the mouseup event happens outside a hex, it doesn't clear the start
