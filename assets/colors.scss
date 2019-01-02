@@ -1,13 +1,25 @@
 $text-color: #e9ecf1;
 
+#home-link {
+  color: #f67c4c;
+}
+
 h1 {
   a, a:visited {
     color: $text-color;
   }
 }
 
+body {
+}
+
 html {
-  background-color: #494f5c;
+  background-color: darken(#3f495a, 10%);
+}
+
+main {
+  background-color: #3f495a;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
 body, a, a:visited {

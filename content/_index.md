@@ -1,8 +1,6 @@
 ---
 ---
 
-Learn something about hex!
-
 <script type="application/json">
 ((dimensions 11x11)
  (annotations (
@@ -92,8 +90,8 @@ Learn something about hex!
    (Black E8))))
 </script>
 
+Learn something about hex!
+
 Except, don't. This isn't really a website yet. Go to [HexWiki](https://www.hexwiki.net/index.php/Main_Page) instead -- it's the best source of hex info on the internet right now.
 
 But check back... some day.
-
-There are [Articles about Hex.](/articles)

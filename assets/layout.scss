@@ -9,6 +9,11 @@ header {
   height: 80px;
   display: flex;
   padding: 0 2em;
+  > svg {
+    flex-grow: 0;
+    width: 70px;
+    margin-right: 0.5em;
+  }
   a {
     line-height: 80px;
     display: block;

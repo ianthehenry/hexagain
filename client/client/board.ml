@@ -1,8 +1,9 @@
 open! Core_kernel
-open Incr_dom
+open! Incr_dom
 open! Import
 
 let render_sexps = false
+let render_labels = false
 
 module Transform = struct
   type t =
@@ -126,12 +127,25 @@ let color_class = function
     "black"
 ;;
 
-let point_at_corner radius corner =
-  let angle = (float corner +. 0.5) *. Float.pi *. 2.0 /. 6.0 in
+let point_at_corner corner ~radius =
+  let corner_int =
+    match (corner : Corner.t) with
+    | WE ->
+      4
+    | ED ->
+      5
+    | DX ->
+      0
+    | XZ ->
+      1
+    | ZA ->
+      2
+    | AW ->
+      3
+  in
+  let angle = (float corner_int +. 0.5) *. Float.pi *. 2.0 /. 6.0 in
   {Point.x = Float.cos angle *. radius; y = Float.sin angle *. radius}
 ;;
-
-let all_corners = [0; 1; 2; 3; 4; 5]
 
 let position (location : Location.t) =
   { Point.x = (float (location.col * 2) *. apothem) +. (apothem *. float location.row)
@@ -139,7 +153,7 @@ let position (location : Location.t) =
 ;;
 
 let get_hex =
-  let points = List.map all_corners ~f:(point_at_corner (radius *. 0.7)) in
+  let points = List.map Corner.all ~f:(point_at_corner ~radius:(radius *. 0.9)) in
   fun location ~classes ->
     Svg.polygon
       points
@@ -184,14 +198,14 @@ let render_annotation annotation =
     let corner_line first_corner =
       let line_radius = 0.3 *. apothem in
       Svg.line
-        (point_at_corner line_radius first_corner)
-        (point_at_corner line_radius ((first_corner + 3) % 6))
+        (point_at_corner ~radius:line_radius first_corner)
+        (point_at_corner ~radius:line_radius (Corner.inverse first_corner))
         [Attr_.transform (Rotation 30)]
     in
     Node.svg
       "g"
       [Attr.class_ "annotation"; Attr_.transform (Translate (position at))]
-      [corner_line 0; corner_line 1; corner_line 2]
+      [corner_line DX; corner_line XZ; corner_line ZA]
 ;;
 
 let testing pred x = if pred x then Some x else None
@@ -242,6 +256,8 @@ let min_and_max_elt_exn list ~compare =
     ~f:(fun (min, max) el -> smaller ~compare min el, larger ~compare max el)
 ;;
 
+let append_some x list = Option.value_map x ~default:list ~f:(fun x -> list @ [x])
+
 let render_state state ~inject =
   let open Vdom in
   let {Board_state.dimensions; rotation; annotations; stones; disabled} = state in
@@ -261,11 +277,6 @@ let render_state state ~inject =
     if Location.Set.mem disabled location then [] else [location]
   in
   let location_set = Location.Set.of_list locations in
-  let edge_pieces =
-    Set.filter location_set ~f:(fun location ->
-        let actual_neighbors = Set.inter (Location.neighbors location) location_set in
-        Set.length actual_neighbors < 6 )
-  in
   let valid_edges =
     if Set.is_empty disabled
     then Edge.Set.of_list Edge.all
@@ -286,24 +297,20 @@ let render_state state ~inject =
                (fun x -> List.length x = 2)
                (Set.inter location_set (Location.neighbors location) |> Set.to_list)
            in
-           let bias = 0.55 in
-           let center =
-             (bias, location)
-             :: List.map edge_hexes ~f:(fun edge_hex -> (1.0 -. bias) *. 0.5, edge_hex)
-             |> List.map ~f:(fun (weight, location) ->
-                    Point.( * ) weight (position location) )
-             |> List.fold ~init:Point.zero ~f:Point.( + )
+           let directions =
+             List.map edge_hexes ~f:(Location.direction_between_exn location)
            in
-           return
-             (Svg.circle
-                center
-                (0.15 *. apothem)
-                [Attr.classes ["edge-marker"; color_class color]]) )
+           let corners =
+             List.concat_map directions ~f:Corner.of_direction
+             |> List.dedup_and_sort ~compare:[%compare: Corner.t]
+             |> List.map ~f:(point_at_corner ~radius:(0.9 *. radius))
+           in
+           Svg.polygon
+             corners
+             [ Attr_.transform (Translate (position location))
+             ; Attr.classes ["edge-marker"; color_class color] ]
+           |> return )
     |> Node.svg "g" ~key:"edge-decorations" []
-  in
-  let border =
-    let points = edge_pieces |> Location.sort_border |> List.map ~f:position in
-    Svg.polygon points [Attr.class_ "border"]
   in
   let hexes =
     List.map locations ~f:(get_hex ~classes:["hex"]) |> Node.svg "g" ~key:"hexes" []
@@ -317,7 +324,11 @@ let render_state state ~inject =
     |> Node.svg "g" ~key:"stones" []
   in
   let annotations =
-    Node.svg "g" ~key:"annotations" [] (List.map annotations ~f:render_annotation)
+    Node.svg
+      "g"
+      ~key:"annotations"
+      [Attr.class_ "annotations"]
+      (List.map annotations ~f:render_annotation)
   in
   let labels =
     List.map locations ~f:(fun location ->
@@ -329,23 +340,25 @@ let render_state state ~inject =
             ; Attr.on_mousedown (fun _ -> inject (Action.Start_annotation location))
             ; Attr.on_mouseup (fun _ -> inject (Action.End_annotation location)) ]
         in
-        let label =
-          Svg.text
-            (Location.to_string location)
-            [Attr.class_ "label"; Attr_.transform (Transform.inverse board_transform)]
-        in
         Node.svg
           "g"
           ~key:(Location.to_string location)
           [Attr_.transform (Translate (position location)); Attr.class_ "label-container"]
-          [label_hit_detector; label] )
+          (if render_labels
+          then
+            [ label_hit_detector
+            ; Svg.text
+                (Location.to_string location)
+                [Attr.class_ "label"; Attr_.transform (Transform.inverse board_transform)]
+            ]
+          else [label_hit_detector]) )
     |> Node.svg "g" ~key:"labels" []
   in
   let board =
     Node.svg
       "g"
       [Attr.class_ "board"; Attr_.transform board_transform]
-      [border; edge_decorations; hexes; stones; annotations; labels]
+      [edge_decorations; hexes; stones; annotations; labels]
   in
   let view_box =
     match rotation with
@@ -378,12 +391,81 @@ let render_state state ~inject =
           0.2)
   in
   let max_height = view_box.size.height *. 60.0 in
+  let radial_gradient ~id ~from ~to_ =
+    Node.svg
+      "radialGradient"
+      [ Attr.id id
+      ; Attr.create "cx" "0.5"
+      ; Attr.create "cy" "0.5"
+      ; Attr.create "r" "0.5"
+      ; Attr.create "fx" "0.5"
+      ; Attr.create "fy" "0.25" ]
+      [ Node.svg "stop" [Attr.create "offset" "0%"; Attr.create "stop-color" from] []
+      ; Node.svg "stop" [Attr.create "offset" "100%"; Attr.create "stop-color" to_] [] ]
+  in
+  let linear_gradient ~id ~from ~to_ =
+    Node.svg
+      "linearGradient"
+      [ Attr.id id
+      ; Attr.create "x1" "0"
+      ; Attr.create "y1" "0"
+      ; Attr.create "x2" "0"
+      ; Attr.create "y2" "1" ]
+      [ Node.svg "stop" [Attr.create "offset" "0%"; Attr.create "stop-color" from] []
+      ; Node.svg "stop" [Attr.create "offset" "100%"; Attr.create "stop-color" to_] [] ]
+  in
   Node.svg
     "svg"
     [ Attr_.view_box view_box
     ; Vdom.Attr.style ["max-height", strf max_height ^ "px"]
-    ; Attr.create "preserveAspectRatio" "xMidYMid meet" ]
-    [board]
+    ; Attr.create "preserveAspectRatio" "xMidYMid meet"
+      (* prevents double-clicking or dragging outside the frame from selecting text *)
+    ; Attr.on_mousedown (const Event.Prevent_default) ]
+    [ Node.svg
+        "defs"
+        []
+        [ radial_gradient ~id:"white-radial-gradient" ~from:"#eee" ~to_:"#ddd"
+        ; linear_gradient ~id:"black-linear-gradient" ~from:"#303030" ~to_:"#252525"
+        ; Node.svg
+            "filter"
+            [Attr.id "stone-shadow"]
+            [ Node.svg
+                "feDropShadow"
+                [ Attr.create "dx" "0"
+                ; Attr.create "dy" "0"
+                ; Attr.create "stdDeviation" "0.025"
+                ; Attr.create "flood-opacity" "0.5" ]
+                [] ]
+        ; Node.svg
+            "filter"
+            [Attr.id "shadow"; Attr.create "height" "130%"]
+            [ Node.svg
+                "feDropShadow"
+                [ Attr.create "dx" "0"
+                ; Attr.create "dy" "0.03"
+                ; Attr.create "stdDeviation" "0.02"
+                ; Attr.create "flood-opacity" "0.5" ]
+                [] ]
+        ; Node.svg
+            "filter"
+            [Attr.id "glow"]
+            [ Node.svg
+                "feGaussianBlur"
+                [Attr.create "in" "SourceGraphic"; Attr.create "stdDeviation" "0.05"]
+                []
+            ; Node.svg
+                "feComponentTransfer"
+                []
+                [ Node.svg
+                    "feFuncA"
+                    [Attr.create "type" "linear"; Attr.create "slope" "0.4"]
+                    [] ]
+            ; Node.svg
+                "feMerge"
+                []
+                [ Node.svg "feMergeNode" [] []
+                ; Node.svg "feMergeNode" [Attr.create "in" "SourceGraphic"] [] ] ] ]
+    ; board ]
 ;;
 
 module Model = struct
