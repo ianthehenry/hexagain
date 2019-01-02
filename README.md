@@ -72,3 +72,5 @@ There's probably some real way to do this.
   - if the mouseup event happens outside a hex, it doesn't clear the start
     annotation correctly
 - the overall theme is bad
+- the jarring re-flow after the SVGs render is horrible
+- rendering performance is pretty bad. all that blurring.

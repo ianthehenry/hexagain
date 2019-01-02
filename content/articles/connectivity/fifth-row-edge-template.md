@@ -2,7 +2,6 @@
 title: "Proof of the Fifth-Row Edge Template"
 weight: 6
 ---
-So, you're curious about that fifth-row template? Read on.
 
 <script type="application/json">
 (
@@ -122,12 +121,10 @@ So, you're curious about that fifth-row template? Read on.
 )
 </script>
 
-You can see that it can reduce to two overlapping triples, or any one of three
-large suspension bridges, or a small suspension bridge.
-
-So we need focus on the points in the overlap of the two triple templates, minus
-the points spanned by a suspension bridge. That leaves us with these points of
-interest:
+We can see that the template is one stone away from reducing to one of many
+possible smaller templates. The two triple templates cover the most area, so
+we'll focus on the points at which those intersect. And we can exclude any of
+the points spanned by a suspension bridge, which leaves this set:
 
 <script type="application/json">
 ((dimensions 10x5)
@@ -161,12 +158,12 @@ An intrusion to the either of the rightmost points has an obvious response:
  (disabled (A1 B1 C1 D1 E1 I1 J1 A2 B2 C2 D2 J2 A3 B3 A4)))
 </script>
 
-That leaves us with three interesting weak points. We won't be able to respond
+Which leaves us with three interesting weak points. We won't be able to respond
 to an intrusion at any of these points by reducing our path to a smaller
 template. Instead, we'll answer with with forcing moves that will eventually
 conspire to get us a connection.
 
-Let's take it from the top.
+Let's go through these one at a time, starting with the topmost.
 
 <script type="application/json">
 (
@@ -205,8 +202,8 @@ Let's take it from the top.
 
 This play creates a strong threat that white must respond to and, as you might
 have guessed, sets up a ladder escape that will be useful later on. It doesn't
-matter where white blocks, and to prove it we'll continue as if every point in
-the path were occupied.
+matter where white blocks, so we'll continue as if every point in the path were
+occupied.
 
 <script type="application/json">
 (
@@ -390,7 +387,8 @@ escape is ready.
 )
 </script>
 
-Now let's consider the next intrusion:
+So an intrusion at the top point doesn't work out for white. What about the
+left?
 
 <script type="application/json">
 (
@@ -622,7 +620,7 @@ comes out swinging?
 </script>
 
 Well, it turns out it didn't help. White is still forced to defend here, just at
-a different point. Black takes back initiative, and the rest of the play
+a different point. Black takes back the initiative, and the rest of the play
 proceeds identically.
 
 <script type="application/json">
@@ -982,5 +980,10 @@ Or the more interesting, but no more effective low road:
 )
 </script>
 
-And that's it. You now know how to respond to every single intrusion into the
-single-stone fifth row ladder template.
+And that's it: we've shown that no intrusion into the template allows white to
+stop the connection to the edge. QED, as they say.
+
+Don't memorize these responses! The important takeaway here isn't how to defend
+the fifth-row edge template, but the technique of playing forcing moves that
+will help you connect a few turns away. You should try to re-create this proof
+yourself, and work out the same analysis you saw here. It's a fun exercise.

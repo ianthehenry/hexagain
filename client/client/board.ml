@@ -388,29 +388,6 @@ let render_state state ~inject =
           0.2)
   in
   let max_height = view_box.size.height *. 60.0 in
-  let radial_gradient ~id ~from ~to_ =
-    Node.svg
-      "radialGradient"
-      [ Attr.id id
-      ; Attr.create "cx" "0.5"
-      ; Attr.create "cy" "0.5"
-      ; Attr.create "r" "0.5"
-      ; Attr.create "fx" "0.5"
-      ; Attr.create "fy" "0.25" ]
-      [ Node.svg "stop" [Attr.create "offset" "0%"; Attr.create "stop-color" from] []
-      ; Node.svg "stop" [Attr.create "offset" "100%"; Attr.create "stop-color" to_] [] ]
-  in
-  let linear_gradient ~id ~from ~to_ =
-    Node.svg
-      "linearGradient"
-      [ Attr.id id
-      ; Attr.create "x1" "0"
-      ; Attr.create "y1" "0"
-      ; Attr.create "x2" "0"
-      ; Attr.create "y2" "1" ]
-      [ Node.svg "stop" [Attr.create "offset" "0%"; Attr.create "stop-color" from] []
-      ; Node.svg "stop" [Attr.create "offset" "100%"; Attr.create "stop-color" to_] [] ]
-  in
   Node.svg
     "svg"
     [ Attr_.view_box view_box
@@ -418,51 +395,7 @@ let render_state state ~inject =
     ; Attr.create "preserveAspectRatio" "xMidYMid meet"
       (* prevents double-clicking or dragging outside the frame from selecting text *)
     ; Attr.on_mousedown (const Event.Prevent_default) ]
-    [ Node.svg
-        "defs"
-        []
-        [ radial_gradient ~id:"white-radial-gradient" ~from:"#eee" ~to_:"#ddd"
-        ; linear_gradient ~id:"black-linear-gradient" ~from:"#303030" ~to_:"#252525"
-        ; Node.svg
-            "filter"
-            [Attr.id "stone-shadow"]
-            [ Node.svg
-                "feDropShadow"
-                [ Attr.create "dx" "0"
-                ; Attr.create "dy" "0"
-                ; Attr.create "stdDeviation" "0.025"
-                ; Attr.create "flood-opacity" "0.5" ]
-                [] ]
-        ; Node.svg
-            "filter"
-            [Attr.id "shadow"; Attr.create "height" "130%"]
-            [ Node.svg
-                "feDropShadow"
-                [ Attr.create "dx" "0"
-                ; Attr.create "dy" "0.03"
-                ; Attr.create "stdDeviation" "0.02"
-                ; Attr.create "flood-opacity" "0.5" ]
-                [] ]
-        ; Node.svg
-            "filter"
-            [Attr.id "glow"]
-            [ Node.svg
-                "feGaussianBlur"
-                [Attr.create "in" "SourceGraphic"; Attr.create "stdDeviation" "0.05"]
-                []
-            ; Node.svg
-                "feComponentTransfer"
-                []
-                [ Node.svg
-                    "feFuncA"
-                    [Attr.create "type" "linear"; Attr.create "slope" "0.4"]
-                    [] ]
-            ; Node.svg
-                "feMerge"
-                []
-                [ Node.svg "feMergeNode" [] []
-                ; Node.svg "feMergeNode" [Attr.create "in" "SourceGraphic"] [] ] ] ]
-    ; board ]
+    [board]
 ;;
 
 module Interaction = struct
