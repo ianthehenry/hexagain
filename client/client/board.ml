@@ -36,6 +36,7 @@ module Action = struct
     | Prev_state
     | Start_annotation of Location.t
     | End_annotation of Location.t
+    | Toggle_interaction
   [@@deriving sexp_of]
 
   let should_log _ = true
@@ -154,10 +155,8 @@ let position (location : Location.t) =
 
 let get_hex =
   let points = List.map Corner.all ~f:(point_at_corner ~radius:(radius *. 0.9)) in
-  fun location ~classes ->
-    Svg.polygon
-      points
-      [Attr_.transform (Translate (position location)); Vdom.Attr.classes classes]
+  fun location attrs ->
+    Svg.polygon points (Attr_.transform (Translate (position location)) :: attrs)
 ;;
 
 let shared_neighbors a b =
@@ -313,7 +312,13 @@ let render_state state ~inject =
     |> Node.svg "g" ~key:"edge-decorations" []
   in
   let hexes =
-    List.map locations ~f:(get_hex ~classes:["hex"]) |> Node.svg "g" ~key:"hexes" []
+    List.map locations ~f:(fun location ->
+        get_hex
+          location
+          [ Attr.class_ "hex"
+          ; Attr.on_mousedown (fun _ -> inject (Action.Start_annotation location))
+          ; Attr.on_mouseup (fun _ -> inject (Action.End_annotation location)) ] )
+    |> Node.svg "g" ~key:"hexes" []
   in
   let stones =
     List.map stones ~f:(fun (color, location) ->
@@ -321,7 +326,7 @@ let render_state state ~inject =
           (position location)
           (0.7 *. apothem)
           [Attr.classes ["stone"; color_class color]] )
-    |> Node.svg "g" ~key:"stones" []
+    |> Node.svg "g" ~key:"stones" [Attr.class_ "stones"]
   in
   let annotations =
     Node.svg
@@ -331,28 +336,20 @@ let render_state state ~inject =
       (List.map annotations ~f:render_annotation)
   in
   let labels =
-    List.map locations ~f:(fun location ->
-        let label_hit_detector =
-          Svg.circle
-            Point.zero
-            apothem
-            [ Attr.class_ "hit-detector"
-            ; Attr.on_mousedown (fun _ -> inject (Action.Start_annotation location))
-            ; Attr.on_mouseup (fun _ -> inject (Action.End_annotation location)) ]
-        in
-        Node.svg
-          "g"
-          ~key:(Location.to_string location)
-          [Attr_.transform (Translate (position location)); Attr.class_ "label-container"]
-          (if render_labels
-          then
-            [ label_hit_detector
-            ; Svg.text
+    (if render_labels
+    then
+      List.map locations ~f:(fun location ->
+          Node.svg
+            "g"
+            ~key:(Location.to_string location)
+            [ Attr_.transform (Translate (position location))
+            ; Attr.class_ "label-container" ]
+            [ Svg.text
                 (Location.to_string location)
                 [Attr.class_ "label"; Attr_.transform (Transform.inverse board_transform)]
-            ]
-          else [label_hit_detector]) )
-    |> Node.svg "g" ~key:"labels" []
+            ] )
+    else [])
+    |> Node.svg "g" ~key:"labels" [Attr.class_ "labels"]
   in
   let board =
     Node.svg
@@ -468,15 +465,33 @@ let render_state state ~inject =
     ; board ]
 ;;
 
+module Interaction = struct
+  type t =
+    | Toggle_annotation
+    | Toggle_stone
+  [@@deriving sexp_of, compare]
+
+  let next = function
+    | Toggle_annotation ->
+      Toggle_stone
+    | Toggle_stone ->
+      Toggle_annotation
+  ;;
+end
+
 module Model = struct
   type t =
     { states : Board_state.t Array.t
     ; state_index : int
-    ; annotation_start : Location.t option }
+    ; annotation_start : Location.t option
+    ; interaction : Interaction.t }
   [@@deriving sexp_of, fields, compare]
 
   let create states =
-    {states = Array.of_list states; state_index = 0; annotation_start = None}
+    { states = Array.of_list states
+    ; state_index = 0
+    ; annotation_start = None
+    ; interaction = Toggle_annotation }
   ;;
 
   let cutoff t1 t2 = compare t1 t2 = 0
@@ -489,7 +504,93 @@ module Model = struct
   ;;
 end
 
+let cons_some opt list = Option.value_map opt ~default:list ~f:(fun x -> x :: list)
+
+let next_annotation location : Annotation.t option -> Annotation.t option = function
+  | None ->
+    Some (Dot location)
+  | Some (Dot loc) ->
+    Some (Star loc)
+  | Some (Star _) ->
+    None
+  | Some (Line _ | Bridge _) ->
+    failwith "no"
+;;
+
+let annotation_at_point (board_state : Board_state.t) location =
+  List.find board_state.annotations ~f:(function
+      | Dot loc ->
+        Location.equal loc location
+      | Star loc ->
+        Location.equal loc location
+      | Bridge _ ->
+        false
+      | Line _ ->
+        false )
+;;
+
+let set_annotation_at_point (board_state : Board_state.t) location annotation =
+  { board_state with
+    annotations =
+      List.filter board_state.annotations ~f:(function
+          | Dot loc ->
+            not (Location.equal loc location)
+          | Star loc ->
+            not (Location.equal loc location)
+          | Bridge _ ->
+            true
+          | Line _ ->
+            true )
+      |> cons_some annotation }
+;;
+
+let next_stone : Color.t option -> Color.t option = function
+  | None ->
+    Some Black
+  | Some Black ->
+    Some White
+  | Some White ->
+    None
+;;
+
+let stone_at_point (board_state : Board_state.t) location =
+  List.find_map board_state.stones ~f:(function
+      | color, loc
+        when Location.equal loc location ->
+        Some color
+      | _ ->
+        None )
+;;
+
+let set_stone_at_point (board_state : Board_state.t) (location : Location.t) color =
+  { board_state with
+    stones =
+      board_state.stones
+      |> List.filter ~f:(fun (_, loc) -> not (Location.equal loc location))
+      |> cons_some (Option.map color ~f:(fun color -> color, location)) }
+;;
+
+let cycle_annotation_at_point location board_state =
+  set_annotation_at_point
+    board_state
+    location
+    (annotation_at_point board_state location |> next_annotation location)
+;;
+
+let cycle_stone_at_point location board_state =
+  set_stone_at_point
+    board_state
+    location
+    (stone_at_point board_state location |> next_stone)
+;;
+
 let apply_action model action _ ~schedule_action:_ =
+  let change_board_state (model : Model.t) ~f =
+    (* TODO: get a better immutable vector structure *)
+    let new_board_states = Array.copy model.states in
+    Array.replace new_board_states model.state_index ~f;
+    {model with states = new_board_states}
+  in
   match (action : Action.t) with
   | Next_state ->
     Model.change_state model 1
@@ -497,33 +598,42 @@ let apply_action model action _ ~schedule_action:_ =
     Model.change_state model (-1)
   | Start_annotation location ->
     {model with annotation_start = Some location}
+  | Toggle_interaction ->
+    {model with interaction = Interaction.next model.interaction}
   | End_annotation end_location ->
     (match model.annotation_start with
     | Some start_location ->
-      let new_annotation : Annotation.t =
-        if Location.( = ) start_location end_location
-        then Dot start_location
-        else if (not (Location.adjacent start_location end_location))
-                && List.length (shared_neighbors start_location end_location) = 2
-        then Bridge (start_location, end_location)
-        else Line (start_location, end_location)
-      in
-      (* TODO: get a better immutable vector structure *)
-      let new_board_states = Array.copy model.states in
-      Array.replace new_board_states model.state_index ~f:(fun board_state ->
-          let annotations =
-            if List.mem
-                 board_state.annotations
-                 new_annotation
-                 ~equal:[%compare.equal: Annotation.t]
-            then
-              List.filter
-                board_state.annotations
-                ~f:(Fn.non ([%compare.equal: Annotation.t] new_annotation))
-            else new_annotation :: board_state.annotations
-          in
-          {board_state with annotations} );
-      {model with states = new_board_states; annotation_start = None}
+      (if Location.( = ) start_location end_location
+      then
+        match model.interaction with
+        | Toggle_annotation ->
+          change_board_state model ~f:(cycle_annotation_at_point start_location)
+        | Toggle_stone ->
+          change_board_state model ~f:(cycle_stone_at_point start_location)
+      else
+        let new_annotation : Annotation.t =
+          if (not (Location.adjacent start_location end_location))
+             && List.length (shared_neighbors start_location end_location) = 2
+          then Bridge (start_location, end_location)
+          else Line (start_location, end_location)
+        in
+        let model' =
+          change_board_state model ~f:(fun board_state ->
+              let annotations =
+                if List.mem
+                     board_state.annotations
+                     new_annotation
+                     ~equal:[%compare.equal: Annotation.t]
+                then
+                  List.filter
+                    board_state.annotations
+                    ~f:(Fn.non ([%compare.equal: Annotation.t] new_annotation))
+                else new_annotation :: board_state.annotations
+              in
+              {board_state with annotations} )
+        in
+        {model' with annotation_start = None})
+      |> fun model -> {model with Model.annotation_start = None}
     | None ->
       model)
 ;;
@@ -555,6 +665,19 @@ let view (m : Model.t Incr.t) ~inject =
   let next_state_button =
     Node.button [on_click Action.Next_state; Attr.class_ "next-state"] [Node.text "→"]
   in
+  let toggle_interaction_button =
+    let%map interaction = m >>| Model.interaction in
+    let text =
+      match interaction with
+      | Toggle_annotation ->
+        "Annotation mode"
+      | Toggle_stone ->
+        "Stone placement mode"
+    in
+    Node.div
+      [Attr.class_ "toolbar"]
+      [Node.button [on_click Action.Toggle_interaction] [Node.text text]]
+  in
   let debug_sexp =
     if render_sexps
     then
@@ -567,6 +690,7 @@ let view (m : Model.t Incr.t) ~inject =
   let%map page_indicator = page_indicator
   and svg = svg
   and debug_sexp = debug_sexp
+  and toggle_interaction_button = toggle_interaction_button
   and state_count = state_count in
   let paging_controls =
     Option.some_if
@@ -575,7 +699,10 @@ let view (m : Model.t Incr.t) ~inject =
          [Attr.class_ "paging-controls"]
          [prev_state_button; page_indicator; next_state_button])
   in
-  Node.div [] (List.filter_opt [Some svg; paging_controls; debug_sexp])
+  Node.div
+    []
+    (List.filter_opt
+       [Some toggle_interaction_button; Some svg; paging_controls; debug_sexp])
 ;;
 
 let create model ~old_model:_ ~inject =

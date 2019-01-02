@@ -27,6 +27,7 @@ $annotation-color: #f67c4c;
     cursor: pointer;
     outline: none;
     background-color: $board-fg-color;
+    color: $white-color;
     &:hover { background-color: lighten($board-fg-color, 5%); }
     &:active { background-color: lighten($board-fg-color, 2%); }
   }
@@ -40,17 +41,32 @@ $annotation-color: #f67c4c;
 
 $border-width: 0.2;
 
+.toolbar {
+  position: absolute;
+  button {
+    display: block;
+    padding: 6px;
+    cursor: pointer;
+    outline: none;
+    background-color: $board-fg-color;
+    &:hover { background-color: lighten($board-fg-color, 5%); }
+    &:active { background-color: lighten($board-fg-color, 2%); }
+    color: $white-color;
+    border-radius: 6px;
+  }
+}
+
 svg {
   width: 100%;
   height: auto;
 
+  .stones, .labels, .annotations {
+    pointer-events: none;
+  }
+
   .label-container {
-    .hit-detector {
-      opacity: 0;
-    }
     .label {
       user-select: none;
-      pointer-events: none;
       font-size: 0.25px;
       text-anchor: middle;
       dominant-baseline: middle;
@@ -69,8 +85,6 @@ svg {
     }
     .stone {
       filter: url(#stone-shadow);
-      /* &.white { fill: #eee; } */
-      /* &.black { fill: #333; } */
       &.white { fill: url(#white-radial-gradient); }
       &.black { fill: url(#black-linear-gradient); }
     }
@@ -81,7 +95,6 @@ svg {
     }
     .annotations {
       filter: url(#glow);
-      pointer-events: none;
       line, path {
         fill: none;
         stroke: $annotation-color;
