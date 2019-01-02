@@ -1,9 +1,3 @@
-$board-bg-color: #2e343c;
-$board-fg-color: lighten(#5a6577, 10%);
-$white-color: #eee;
-$black-color: #222;
-$annotation-color: #f6874c;
-
 .paging-controls {
   width: 140px;
   height: 40px;
@@ -27,7 +21,7 @@ $annotation-color: #f6874c;
     cursor: pointer;
     outline: none;
     background-color: $board-fg-color;
-    color: $white-color;
+    color: $text-color;
     &:hover { background-color: lighten($board-fg-color, 5%); }
     &:active { background-color: lighten($board-fg-color, 2%); }
   }

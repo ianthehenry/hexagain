@@ -1,7 +1,12 @@
 $text-color: #e9ecf1;
+$board-bg-color: #2e343c;
+$board-fg-color: lighten(#5a6577, 10%);
+$white-color: #eee;
+$black-color: #222;
+$annotation-color: #f6874c;
 
 #home-link {
-  color: #f67c4c;
+  color: $annotation-color;
 }
 
 h1 {
@@ -19,7 +24,8 @@ html {
 
 main {
   background-color: #3f495a;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
 }
 
 body, a, a:visited {
@@ -27,5 +33,5 @@ body, a, a:visited {
 }
 
 a:active {
-  color: #d27070;
+  color: $annotation-color;
 }
