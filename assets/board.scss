@@ -103,6 +103,13 @@ svg {
   }
 }
 
+/* Filters are broken on safari. The bottom N% of them get cut off. The effect
+   is much worse if you apply it to individual lines. Maybe something about
+   strokes not contributing sufficiently to image dimensions? I dunno. */
+_::-webkit-full-page-media, _:future, :root svg .annotations {
+  filter: none !important;
+}
+
 script[type="application/json"] {
   display: block;
   visibility: hidden;
