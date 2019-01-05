@@ -1,3 +1,17 @@
+$button-border-radius: 6px;
+
+button {
+  display: block;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  background-color: $board-fg-color;
+  color: $text-color;
+  border-radius: $button-border-radius;
+  &:hover { background-color: lighten($board-fg-color, 5%); }
+  &:active { background-color: darken($board-fg-color, 5%); color: darken($text-color, 10%) }
+}
+
 .paging-controls {
   width: 140px;
   height: 40px;
@@ -11,42 +25,30 @@
     text-align: center;
   }
   .page-indicator {
+    user-select: none;
     width: 60px;
     border: solid 1px $board-fg-color;
     border-width: 1px 0;
   }
   button {
-    display: block;
     width: 40px;
-    cursor: pointer;
-    outline: none;
-    background-color: $board-fg-color;
-    color: $text-color;
-    &:hover { background-color: lighten($board-fg-color, 5%); }
-    &:active { background-color: lighten($board-fg-color, 2%); }
   }
   button.prev-state {
-    border-radius: 6px 0 0 6px;
+    border-radius: $button-border-radius 0 0 $button-border-radius;
   }
   button.next-state {
-    border-radius: 0 6px 6px 0;
+    border-radius: 0 $button-border-radius $button-border-radius 0;
   }
 }
 
 $border-width: 0.2;
 
 .toolbar {
-  position: absolute;
+  @media only screen and (min-width: 600px) {
+    position: absolute;
+  }
   button {
-    display: block;
     padding: 6px;
-    cursor: pointer;
-    outline: none;
-    background-color: $board-fg-color;
-    &:hover { background-color: lighten($board-fg-color, 5%); }
-    &:active { background-color: lighten($board-fg-color, 2%); }
-    color: $white-color;
-    border-radius: 6px;
   }
 }
 
@@ -54,13 +56,17 @@ svg {
   width: 100%;
   height: auto;
 
+  /* Unfortunately, mobile Safari on iOS ignores this. */
+  &.editable {
+    touch-action: none;
+  }
+
   .stones, .labels, .annotations {
     pointer-events: none;
   }
 
   .label-container {
     .label {
-      user-select: none;
       font-size: 0.25px;
       text-anchor: middle;
       dominant-baseline: middle;
@@ -76,17 +82,17 @@ svg {
     .hex {
       fill: $board-fg-color;
       filter: url(#shadow);
+      &:active {
+        fill: darken($board-fg-color, 5%);
+      }
+      -webkit-tap-highlight-color: transparent;
     }
-    .stone {
-      filter: url(#stone-shadow);
+    .stone, .edge-marker {
       &.white { fill: url(#white-linear-gradient); }
       &.black { fill: url(#black-linear-gradient); }
     }
-    .edge-marker {
-      filter: url(#shadow);
-      &.white { fill: url(#white-linear-gradient); }
-      &.black { fill: url(#black-linear-gradient); }
-    }
+    .stone { filter: url(#stone-shadow);  }
+    .edge-marker { filter: url(#shadow); }
     .annotations {
       filter: url(#glow);
       line, path {

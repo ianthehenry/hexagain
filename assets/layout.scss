@@ -2,20 +2,23 @@ body {
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
-  touch-action: manipulation;
 }
 
 header {
   height: 80px;
+  line-height: 80px;
+  * {
+    line-height: inherit;
+  }
   display: flex;
-  padding: 0 2em;
   > svg {
     flex-grow: 0;
     width: 70px;
-    margin-right: 0.5em;
+  }
+  a#home-link {
+    margin: 0 0.5em;
   }
   a {
-    line-height: 80px;
     display: block;
     height: 100%;
   }
@@ -25,14 +28,24 @@ header {
   nav {
     flex-grow: 0;
   }
+
+  padding: 0 2em;
+  @media only screen and (max-width: 500px) {
+    padding: 0 1em;
+    height: 60px;
+    line-height: 60px;
+    > svg {
+      width: 50px;
+    }
+  }
 }
 
-main {
+main, footer {
   padding: 2em;
-}
 
-footer {
-  padding: 2em;
+  @media only screen and (max-width: 500px) {
+    padding: 1em;
+  }
 }
 
 article+aside {

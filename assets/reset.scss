@@ -7,3 +7,15 @@
   border: none;
   box-sizing: border-box;
 }
+
+html {
+  touch-action: manipulation;
+}
+
+button {
+  user-select: none;
+}
+
+svg text {
+  user-select: none;
+}
