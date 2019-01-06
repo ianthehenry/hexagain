@@ -1,6 +1,7 @@
 open! Core_kernel
 open! Incr_dom
 open! Import
+open! Js_of_ocaml
 
 let render_sexps = false
 let render_labels = false
@@ -36,6 +37,7 @@ module Action = struct
     | Prev_state
     | Start_annotation of Location.t
     | End_annotation of Location.t
+    | Annotation_between of Location.t * Location.t
     | Toggle_interaction
   [@@deriving sexp_of]
 
@@ -65,7 +67,24 @@ module Attr_ = struct
   ;;
 
   let transform transform = Attr.create "transform" (Transform.to_svg_string transform)
+
+  (* TODO: upstream these *)
+  type touchEvent = Dom_html.touchEvent
+
+  let on_touchend : (touchEvent Js.t -> Event.t) -> Attr.t = Attr.on "touchend"
+  let on_touchstart : (touchEvent Js.t -> Event.t) -> Attr.t = Attr.on "touchstart"
+  let on_touchmove : (touchEvent Js.t -> Event.t) -> Attr.t = Attr.on "touchmove"
+  let on_touchcancel : (touchEvent Js.t -> Event.t) -> Attr.t = Attr.on "touchcancel"
 end
+
+let mobile_friendly_button text action attrs ~inject =
+  let open Vdom in
+  Node.button
+    ( Attr.on "touchstart" (const Event.Ignore)
+    :: Attr.on_click (fun _ -> inject action)
+    :: attrs )
+    [Node.text text]
+;;
 
 module Svg = struct
   open Vdom
@@ -256,6 +275,36 @@ let min_and_max_elt_exn list ~compare =
 ;;
 
 let append_some x list = Option.value_map x ~default:list ~f:(fun x -> list @ [x])
+let option_trying f x = Option.try_with (fun () -> f x)
+
+let touch_start_and_end (event : Dom_html.touchEvent Js.t) =
+  let open Option.Let_syntax in
+  (* touchend is fired as soon as a touch that *started* on this
+     element ends. So we need to find the element that the touch is
+     currently over, which might be some random element anywhere on
+     the page, or a hex from a different board entirely. So we verify
+     that it's a reasonable drag between hexes by checking the
+     sibling relationship. *)
+  let%bind touch = event##.changedTouches##item 0 |> Js.Opt.to_option in
+  let get_location (element : #Dom.element Js.t) =
+    element##getAttribute (Js.string "data-location")
+    |> Js.Opt.to_option
+    >>| Js.to_string
+    >>= option_trying Location.of_string
+  in
+  let%bind end_element =
+    Dom_html.document##elementFromPoint touch##.clientX touch##.clientY
+    |> Js.Opt.to_option
+  in
+  let%bind start_element = event##.currentTarget |> Js.Opt.to_option in
+  let%bind start_parent = start_element##.parentElement |> Js.Opt.to_option in
+  let%bind () =
+    Option.some_if (start_parent##contains (end_element :> Dom.node Js.t)) ()
+  in
+  let%bind start_location = get_location start_element in
+  let%bind end_location = get_location end_element in
+  return (start_location, end_location)
+;;
 
 let render_state state ~inject =
   let open Vdom in
@@ -316,7 +365,16 @@ let render_state state ~inject =
         get_hex
           location
           [ Attr.class_ "hex"
+          ; Attr.create "data-location" (Location.to_string location)
+          ; Attr.on "touchmove" (fun _ -> Event.Prevent_default)
+          ; Attr.on "touchstart" (fun _ -> inject (Action.Start_annotation location))
           ; Attr.on_mousedown (fun _ -> inject (Action.Start_annotation location))
+          ; Attr_.on_touchend (fun event ->
+                match touch_start_and_end event with
+                | Some (start, end_) ->
+                  inject (Action.Annotation_between (start, end_))
+                | None ->
+                  Event.Ignore )
           ; Attr.on_mouseup (fun _ -> inject (Action.End_annotation location)) ] )
     |> Node.svg "g" ~key:"hexes" []
   in
@@ -517,13 +575,44 @@ let cycle_stone_at_point location board_state =
     (stone_at_point board_state location |> next_stone)
 ;;
 
+let change_board_state (model : Model.t) ~f =
+  (* TODO: get a better immutable vector structure *)
+  let new_board_states = Array.copy model.states in
+  Array.replace new_board_states model.state_index ~f;
+  {model with states = new_board_states}
+;;
+
+let apply_annotation_between (model : Model.t) start_location end_location =
+  if Location.( = ) start_location end_location
+  then
+    match model.interaction with
+    | Toggle_annotation ->
+      change_board_state model ~f:(cycle_annotation_at_point start_location)
+    | Toggle_stone ->
+      change_board_state model ~f:(cycle_stone_at_point start_location)
+  else
+    let new_annotation : Annotation.t =
+      if (not (Location.adjacent start_location end_location))
+         && List.length (shared_neighbors start_location end_location) = 2
+      then Bridge (start_location, end_location)
+      else Line (start_location, end_location)
+    in
+    change_board_state model ~f:(fun board_state ->
+        let annotations =
+          if List.mem
+               board_state.annotations
+               new_annotation
+               ~equal:[%compare.equal: Annotation.t]
+          then
+            List.filter
+              board_state.annotations
+              ~f:(Fn.non ([%compare.equal: Annotation.t] new_annotation))
+          else new_annotation :: board_state.annotations
+        in
+        {board_state with annotations} )
+;;
+
 let apply_action model action _ ~schedule_action:_ =
-  let change_board_state (model : Model.t) ~f =
-    (* TODO: get a better immutable vector structure *)
-    let new_board_states = Array.copy model.states in
-    Array.replace new_board_states model.state_index ~f;
-    {model with states = new_board_states}
-  in
   match (action : Action.t) with
   | Next_state ->
     Model.change_state model 1
@@ -533,40 +622,13 @@ let apply_action model action _ ~schedule_action:_ =
     {model with annotation_start = Some location}
   | Toggle_interaction ->
     {model with interaction = Interaction.next model.interaction}
+  | Annotation_between (start_location, end_location) ->
+    apply_annotation_between model start_location end_location
   | End_annotation end_location ->
     (match model.annotation_start with
     | Some start_location ->
-      (if Location.( = ) start_location end_location
-      then
-        match model.interaction with
-        | Toggle_annotation ->
-          change_board_state model ~f:(cycle_annotation_at_point start_location)
-        | Toggle_stone ->
-          change_board_state model ~f:(cycle_stone_at_point start_location)
-      else
-        let new_annotation : Annotation.t =
-          if (not (Location.adjacent start_location end_location))
-             && List.length (shared_neighbors start_location end_location) = 2
-          then Bridge (start_location, end_location)
-          else Line (start_location, end_location)
-        in
-        let model' =
-          change_board_state model ~f:(fun board_state ->
-              let annotations =
-                if List.mem
-                     board_state.annotations
-                     new_annotation
-                     ~equal:[%compare.equal: Annotation.t]
-                then
-                  List.filter
-                    board_state.annotations
-                    ~f:(Fn.non ([%compare.equal: Annotation.t] new_annotation))
-                else new_annotation :: board_state.annotations
-              in
-              {board_state with annotations} )
-        in
-        {model' with annotation_start = None})
-      |> fun model -> {model with Model.annotation_start = None}
+      { (apply_annotation_between model start_location end_location) with
+        annotation_start = None }
     | None ->
       model)
 ;;
@@ -591,12 +653,11 @@ let view (m : Model.t Incr.t) ~inject =
     and states = m >>| Model.states in
     states.(state_index)
   in
-  let on_click action = Attr.on_click (fun _ -> inject action) in
   let prev_state_button =
-    Node.button [on_click Action.Prev_state; Attr.class_ "prev-state"] [Node.text "←"]
+    mobile_friendly_button "←" Action.Prev_state [Attr.class_ "prev-state"] ~inject
   in
   let next_state_button =
-    Node.button [on_click Action.Next_state; Attr.class_ "next-state"] [Node.text "→"]
+    mobile_friendly_button "→" Action.Next_state [Attr.class_ "next-state"] ~inject
   in
   let toggle_interaction_button =
     let%map interaction = m >>| Model.interaction in
@@ -609,7 +670,7 @@ let view (m : Model.t Incr.t) ~inject =
     in
     Node.div
       [Attr.class_ "toolbar"]
-      [Node.button [on_click Action.Toggle_interaction] [Node.text text]]
+      [mobile_friendly_button ~inject text Action.Toggle_interaction []]
   in
   let debug_sexp =
     if render_sexps

@@ -29,10 +29,12 @@ the assets directory.
 ## Changing the JavaScript
 
 This is trickier. You'll need `opam` and `dune`, but you'll also need to pin a
-custom [`incr_dom`](https://github.com/ianthehenry/incr_dom) and a custom
-[`async_extra`](https://github.com/ianthehenry/async_extra).
+custom [`incr_dom`](https://github.com/ianthehenry/incr_dom),
+[`async_extra`](https://github.com/ianthehenry/async_extra), and
+[`js_of_ocaml`](https://github.com/ianthehenry/js_of_ocaml) because... look,
+it's not the healthiest open source ecosystem.
 
-To rebuild the JavaScript, run:
+To rebuild the JavaScript, `cd` into the `client/` subdirectory and run:
 
 ```bash
 $ dune build --profile=production client/hexagain_client.bc.js
@@ -43,8 +45,6 @@ Or, in development:
 ```bash
 $ dune build --watch client/hexagain_client.bc.js
 ```
-
-From the `client/` subdirectory.
 
 Before committing, make sure you run:
 
@@ -73,4 +73,5 @@ There's probably some real way to do this.
     annotation correctly
 - the overall theme is bad
 - the jarring re-flow after the SVGs render is horrible
+- rendering of the actual board state is 0% incremental right now
 - rendering performance is pretty bad. all that blurring.
