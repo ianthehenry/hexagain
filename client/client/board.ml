@@ -5,6 +5,14 @@ open! Js_of_ocaml
 
 let render_sexps = false
 let render_labels = false
+let testing pred x = if pred x then Some x else None
+let twice x = x, x
+let smaller ~compare a b = if compare a b < 0 then a else b
+let larger ~compare a b = if compare a b < 0 then b else a
+let append_some x list = Option.value_map x ~default:list ~f:(fun x -> list @ [x])
+let option_trying f x = Option.try_with (fun () -> f x)
+let cons_some opt list = Option.value_map opt ~default:list ~f:(fun x -> x :: list)
+let cons_if bool x xs = if bool then x :: xs else xs
 
 module Transform = struct
   type t =
@@ -38,6 +46,8 @@ module Action = struct
     | Start_annotation of Location.t
     | End_annotation of Location.t
     | Annotation_between of Location.t * Location.t
+    | Set_current_point of Point.t
+    | Cancel_annotation
     | Toggle_interaction
   [@@deriving sexp_of]
 
@@ -226,8 +236,6 @@ let render_annotation annotation =
       [corner_line DX; corner_line XZ; corner_line ZA]
 ;;
 
-let testing pred x = if pred x then Some x else None
-
 module Edge = struct
   module T = struct
     type t =
@@ -263,10 +271,6 @@ module Edge = struct
   ;;
 end
 
-let twice x = x, x
-let smaller ~compare a b = if compare a b < 0 then a else b
-let larger ~compare a b = if compare a b < 0 then b else a
-
 let min_and_max_elt_exn list ~compare =
   List.fold
     ~init:(twice (List.hd_exn list))
@@ -274,8 +278,33 @@ let min_and_max_elt_exn list ~compare =
     ~f:(fun (min, max) el -> smaller ~compare min el, larger ~compare max el)
 ;;
 
-let append_some x list = Option.value_map x ~default:list ~f:(fun x -> list @ [x])
-let option_trying f x = Option.try_with (fun () -> f x)
+let location_of_element element =
+  let open Option.Monad_infix in
+  element##getAttribute (Js.string "data-location")
+  |> Js.Opt.to_option
+  >>| Js.to_string
+  >>= option_trying Location.of_string
+;;
+
+let initial_location_of_event event =
+  let open Option.Monad_infix in
+  event##.currentTarget |> Js.Opt.to_option >>= location_of_element
+;;
+
+let touch_point event =
+  Option.map
+    (event##.changedTouches##item 0 |> Js.Opt.to_option)
+    ~f:(fun touch -> {Point.x = touch##.clientX; y = touch##.clientY})
+;;
+
+let element_at (point : Point.t) =
+  Dom_html.document##elementFromPoint point.x point.y |> Js.Opt.to_option
+;;
+
+let location_of_touch_point event =
+  let open Option.Monad_infix in
+  touch_point event >>= element_at >>= location_of_element
+;;
 
 let touch_start_and_end (event : Dom_html.touchEvent Js.t) =
   let open Option.Let_syntax in
@@ -285,28 +314,23 @@ let touch_start_and_end (event : Dom_html.touchEvent Js.t) =
      the page, or a hex from a different board entirely. So we verify
      that it's a reasonable drag between hexes by checking the
      sibling relationship. *)
-  let%bind touch = event##.changedTouches##item 0 |> Js.Opt.to_option in
-  let get_location (element : #Dom.element Js.t) =
-    element##getAttribute (Js.string "data-location")
-    |> Js.Opt.to_option
-    >>| Js.to_string
-    >>= option_trying Location.of_string
-  in
+  let%bind touch_point = touch_point event in
   let%bind end_element =
-    Dom_html.document##elementFromPoint touch##.clientX touch##.clientY
-    |> Js.Opt.to_option
+    Dom_html.document##elementFromPoint touch_point.x touch_point.y |> Js.Opt.to_option
   in
   let%bind start_element = event##.currentTarget |> Js.Opt.to_option in
   let%bind start_parent = start_element##.parentElement |> Js.Opt.to_option in
   let%bind () =
     Option.some_if (start_parent##contains (end_element :> Dom.node Js.t)) ()
   in
-  let%bind start_location = get_location start_element in
-  let%bind end_location = get_location end_element in
+  let%bind start_location = location_of_element start_element in
+  let%bind end_location = location_of_element end_element in
   return (start_location, end_location)
 ;;
 
-let render_state state ~inject =
+let actions ~inject events = Vdom.Event.Many (List.map events ~f:inject)
+
+let render_state state ~highlighted_hexes ~inject =
   let open Vdom in
   let {Board_state.dimensions; rotation; annotations; stones; disabled} = state in
   let rotation = Option.value rotation ~default:default_rotation in
@@ -361,21 +385,64 @@ let render_state state ~inject =
     |> Node.svg "g" ~key:"edge-decorations" []
   in
   let hexes =
+    let on_mousedown event =
+      Option.value_map
+        (initial_location_of_event event)
+        ~f:(fun location -> inject (Action.Start_annotation location))
+        ~default:Event.Ignore
+    in
+    let on_mouseup event =
+      Option.value_map
+        (initial_location_of_event event)
+        ~f:(fun location -> inject (Action.End_annotation location))
+        ~default:Event.Ignore
+    in
+    let on_touchstart event =
+      Event.Many
+        (List.filter_opt
+           [ Option.map (initial_location_of_event event) ~f:(fun location ->
+                 inject (Action.Start_annotation location) )
+           ; Option.map (touch_point event) ~f:(fun point ->
+                 inject (Action.Set_current_point point) )
+             (* preventDefault() suppresses mouse events, which is good --
+               otherwise both fire. And it also suppresses long touch selecting text,
+               which is nice. But it suppresses the :active state, which is sort of
+               annoying. So we don't rely on that. *)
+           ; Some Event.Prevent_default ])
+    in
+    let on_touchmove event =
+      Event.Many
+        (cons_some
+           (Option.map (touch_point event) ~f:(fun point ->
+                inject (Action.Set_current_point point) ))
+           [ (* preventDefault() suppresses mouse events, which is good --
+              otherwise both fire. And it also suppresses long touch selecting
+              text, which is nice. But it suppresses the :active state, which is
+              sort of annoying. So we don't rely on that. *)
+             Event.Prevent_default ])
+    in
+    let on_touchend event =
+      match touch_start_and_end event with
+      | Some (start, end_) ->
+        inject (Action.Annotation_between (start, end_))
+      | None ->
+        inject Action.Cancel_annotation
+    in
+    let on_touchcancel _ = inject Action.Cancel_annotation in
     List.map locations ~f:(fun location ->
+        let highlight =
+          List.mem highlighted_hexes location ~equal:[%compare.equal: Location.t]
+        in
         get_hex
           location
-          [ Attr.class_ "hex"
+          [ Attr.classes (cons_if highlight "highlight" ["hex"])
           ; Attr.create "data-location" (Location.to_string location)
-          ; Attr.on "touchmove" (fun _ -> Event.Prevent_default)
-          ; Attr.on "touchstart" (fun _ -> inject (Action.Start_annotation location))
-          ; Attr.on_mousedown (fun _ -> inject (Action.Start_annotation location))
-          ; Attr_.on_touchend (fun event ->
-                match touch_start_and_end event with
-                | Some (start, end_) ->
-                  inject (Action.Annotation_between (start, end_))
-                | None ->
-                  Event.Ignore )
-          ; Attr.on_mouseup (fun _ -> inject (Action.End_annotation location)) ] )
+          ; Attr_.on_touchstart on_touchstart
+          ; Attr_.on_touchmove on_touchmove
+          ; Attr_.on_touchend on_touchend
+          ; Attr_.on_touchcancel on_touchcancel
+          ; Attr.on_mousedown on_mousedown
+          ; Attr.on_mouseup on_mouseup ] )
     |> Node.svg "g" ~key:"hexes" []
   in
   let stones =
@@ -451,7 +518,8 @@ let render_state state ~inject =
     [ Attr_.view_box view_box
     ; Vdom.Attr.style ["max-height", strf max_height ^ "px"]
     ; Attr.create "preserveAspectRatio" "xMidYMid meet"
-      (* prevents double-clicking or dragging outside the frame from selecting text *)
+      (* prevents double-clicking or dragging outside the frame from selecting
+      text *)
     ; Attr.on_mousedown (const Event.Prevent_default) ]
     [board]
 ;;
@@ -474,6 +542,7 @@ module Model = struct
   type t =
     { states : Board_state.t Array.t
     ; state_index : int
+    ; current_point : Point.t option
     ; annotation_start : Location.t option
     ; interaction : Interaction.t }
   [@@deriving sexp_of, fields, compare]
@@ -482,6 +551,7 @@ module Model = struct
     { states = Array.of_list states
     ; state_index = 0
     ; annotation_start = None
+    ; current_point = None
     ; interaction = Toggle_annotation }
   ;;
 
@@ -494,8 +564,6 @@ module Model = struct
     }
   ;;
 end
-
-let cons_some opt list = Option.value_map opt ~default:list ~f:(fun x -> x :: list)
 
 let next_annotation location : Annotation.t option -> Annotation.t option = function
   | None ->
@@ -618,12 +686,15 @@ let apply_action model action _ ~schedule_action:_ =
     Model.change_state model 1
   | Prev_state ->
     Model.change_state model (-1)
+  | Set_current_point point ->
+    {model with current_point = Some point}
   | Start_annotation location ->
     {model with annotation_start = Some location}
   | Toggle_interaction ->
     {model with interaction = Interaction.next model.interaction}
   | Annotation_between (start_location, end_location) ->
-    apply_annotation_between model start_location end_location
+    { (apply_annotation_between model start_location end_location) with
+      annotation_start = None }
   | End_annotation end_location ->
     (match model.annotation_start with
     | Some start_location ->
@@ -631,16 +702,41 @@ let apply_action model action _ ~schedule_action:_ =
         annotation_start = None }
     | None ->
       model)
+  | Cancel_annotation ->
+    {model with annotation_start = None}
 ;;
 
-let on_startup ~schedule_action:_ _ = Async_kernel.return ()
+let on_startup ~schedule_action _ =
+  (* We do this to the window, not the document or the body, so that we can see
+     mouseup events that occur outside the browser. Don't worry: this doesn't
+     actually set the property, but rather calls addEventListener. *)
+  Dom_html.addEventListener
+    Dom_html.window
+    Dom_html.Event.mouseup
+    (Dom.handler (fun _ ->
+         schedule_action Action.Cancel_annotation;
+         Js.bool true ))
+    (Js.bool false)
+  |> (ignore : Dom.event_listener_id -> unit);
+  Dom_html.addEventListener
+    Dom_html.window
+    Dom_html.Event.mousemove
+    (Dom.handler (fun event ->
+         schedule_action
+           (Action.Set_current_point
+              {Point.x = float event##.clientX; y = float event##.clientY});
+         Js.bool true ))
+    (Js.bool false)
+  |> (ignore : Dom.event_listener_id -> unit);
+  Async_kernel.Deferred.unit
+;;
 
-let view (m : Model.t Incr.t) ~inject =
+let view (model : Model.t Incr.t) ~inject =
   let open Incr.Let_syntax in
   let open Vdom in
-  let state_count = m >>| Model.state_count in
+  let state_count = model >>| Model.state_count in
   let page_text =
-    let%map state_index = m >>| Model.state_index
+    let%map state_index = model >>| Model.state_index
     and state_count = state_count in
     sprintf "%d / %d" (state_index + 1) state_count
   in
@@ -649,8 +745,8 @@ let view (m : Model.t Incr.t) ~inject =
     Node.span [Attr.class_ "page-indicator"] [Node.text page_text]
   in
   let state =
-    let%map state_index = m >>| Model.state_index
-    and states = m >>| Model.states in
+    let%map state_index = model >>| Model.state_index
+    and states = model >>| Model.states in
     states.(state_index)
   in
   let prev_state_button =
@@ -660,7 +756,7 @@ let view (m : Model.t Incr.t) ~inject =
     mobile_friendly_button "→" Action.Next_state [Attr.class_ "next-state"] ~inject
   in
   let toggle_interaction_button =
-    let%map interaction = m >>| Model.interaction in
+    let%map interaction = model >>| Model.interaction in
     let text =
       match interaction with
       | Toggle_annotation ->
@@ -680,7 +776,28 @@ let view (m : Model.t Incr.t) ~inject =
         (Node.textarea [Attr.class_ "sexp"] [Node.text (Sexp_pretty.sexp_to_string sexp)])
     else return None
   in
-  let svg = state >>| render_state ~inject in
+  let highlighted_hexes =
+    let%map start_location = model >>| Model.annotation_start
+    and current_point = model >>| Model.current_point in
+    (* When using a mouse, the current location is set when hovering, whether or
+       not the mouse is down. Minor performance optimization here. There might
+       be a way to prevent setting it when a button isn't held that will render
+       this less useful. *)
+    match start_location with
+    | Some start_location ->
+      let current_location =
+        let open Option.Monad_infix in
+        current_point >>= element_at >>= location_of_element
+      in
+      cons_some current_location [start_location]
+    | None ->
+      []
+  in
+  let svg =
+    let%map state = state
+    and highlighted_hexes = highlighted_hexes in
+    render_state state ~highlighted_hexes ~inject
+  in
   let%map page_indicator = page_indicator
   and svg = svg
   and debug_sexp = debug_sexp

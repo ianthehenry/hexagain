@@ -82,7 +82,7 @@ svg {
     .hex {
       fill: $board-fg-color;
       filter: url(#shadow);
-      &:active {
+      &.highlight {
         fill: darken($board-fg-color, 5%);
       }
       -webkit-tap-highlight-color: transparent;

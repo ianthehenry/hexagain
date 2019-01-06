@@ -67,11 +67,7 @@ There's probably some real way to do this.
 
 # TODO
 
-- annotation editing stuff
-  - there's no feedback when you're drawing annotations
-  - if the mouseup event happens outside a hex, it doesn't clear the start
-    annotation correctly
-- the overall theme is bad
+- could show a preview when drawing annotations
 - the jarring re-flow after the SVGs render is horrible
 - rendering of the actual board state is 0% incremental right now
 - rendering performance is pretty bad. all that blurring.

@@ -3,7 +3,7 @@ open! Core_kernel
 type t =
   { x : float
   ; y : float }
-[@@deriving sexp_of, fields]
+[@@deriving sexp_of, fields, compare]
 
 let ( + ) {x; y} {x = x'; y = y'} = {x = x +. x'; y = y +. y'}
 let ( - ) {x; y} {x = x'; y = y'} = {x = x -. x'; y = y -. y'}
