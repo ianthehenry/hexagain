@@ -380,8 +380,10 @@ There is one edge template for a single stone on the fifth row.
 Because it requires ten empty edge points, it's not very likely that this
 template will come up if you're playing on an 11x11 board. Its area is so large
 that intruding on it is easy, and it doesn't get a catchy name. The shape of the
-template is also very large, so it's hard to visually recognize it in play.
+template is also very large and irregular, so it's hard to visually recognize it
+in play.
 
-Still, it's very interesting to study, as none of the responses to template
-intrusions are trivial. But because it's so involved, the proof for this
-template is on [a separate page]({{< ref "/articles/connectivity/fifth-row-edge-template" >}}).
+Still, it's very interesting to study, as it has many template intrusions that
+require nontrivial responses. But because it's so involved, the proof for this
+template is on [a separate page]({{< ref
+"/articles/connectivity/fifth-row-edge-template" >}}).

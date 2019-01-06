@@ -118,15 +118,45 @@ weight: 6
  (stones (
    (Black G1)))
  (disabled (A1 B1 C1 D1 E1 I1 J1 A2 B2 C2 D2 J2 A3 B3 A4)))
+((dimensions 10x5)
+ (rotation   Flat)
+ (annotations (
+   (Line   F5 F3)
+   (Line   C5 F5)
+   (Line   E3 C5)
+   (Line   F3 E3)
+   (Bridge F3 G1)
+   (Dot F3)))
+ (stones ((Black G1)))
+ (disabled (A1 B1 C1 D1 E1 I1 J1 A2 B2 C2 D2 J2 A3 B3 A4)))
 )
 </script>
 
 We can see that the template is one stone away from reducing to one of many
-possible smaller templates. The two triple templates cover the most area, so
-we'll focus on the points at which those intersect. And we can exclude any of
-the points spanned by a suspension bridge, which leaves this set:
+possible smaller templates. We only need to consider the points at which *every*
+one of these templates (and the paths required to reach them) overlap. But
+that's hard and boring to do mechanically, so let's do it a little informally.
+
+The two triple templates cover the most area, so we'll start with all the points
+in trapezoid at which they intersect. Then we'll subtract each of the points
+spanned by a suspension bridge.
 
 <script type="application/json">
+(
+((dimensions 10x5)
+ (rotation   Flat)
+ (annotations (
+   (Star G4)
+   (Star F4)
+   (Star E5)
+   (Star E4)
+   (Star G5)
+   (Star F5)
+   (Star D5)
+   (Star G3)
+   (Star F3)))
+ (stones ((Black G1)))
+ (disabled (A1 B1 C1 D1 E1 I1 J1 A2 B2 C2 D2 J2 A3 B3 A4)))
 ((dimensions 10x5)
  (rotation   Flat)
  (annotations (
@@ -137,9 +167,10 @@ the points spanned by a suspension bridge, which leaves this set:
    (Star F3)))
  (stones ((Black G1)))
  (disabled (A1 B1 C1 D1 E1 I1 J1 A2 B2 C2 D2 J2 A3 B3 A4)))
+)
 </script>
 
-An intrusion to the either of the rightmost points has an obvious response:
+And an intrusion to the either of the rightmost points has an obvious response:
 
 <script type="application/json">
 ((dimensions 10x5)
@@ -956,16 +987,16 @@ Or the more interesting, but no more effective low road:
 ((dimensions 10x5)
  (rotation   Flat)
  (annotations (
+   (Dot C4)
+   (Line   C4 C5)
+   (Line   C4 B5)
+   (Line   D3 C4)
    (Bridge E2 G1)
    (Line   D3 E2)
    (Line   E4 E5)
    (Line   D4 E4)
    (Dot D4)
-   (Line D3 D4)
-   (Dot B4)
-   (Line   B4 B5)
-   (Line   B4 A5)
-   (Bridge D3 B4)))
+   (Line D3 D4)))
  (stones (
    (Black D3)
    (White E3)
