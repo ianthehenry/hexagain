@@ -56,14 +56,62 @@ let parse_model text =
   Board.Model.create states
 ;;
 
+module Route = struct
+  type t =
+    | Game of ID.Game.t
+    | Home
+    | Other
+  [@@deriving sexp_of]
+
+  let of_pathname pathname =
+    Option.try_with (fun () ->
+        match
+          pathname |> String.strip ~drop:(Char.( = ) '/') |> String.split ~on:'/'
+        with
+        | ["game"] ->
+          (* Sigh. So using the hugo dev server is really nice, but it won't let
+             us route to dynamic URLs, so we do this to test... *)
+          Game (ID.Game.of_string "0")
+        | ["game"; id] ->
+          Game (ID.Game.of_string id)
+        | [""] ->
+          Home
+        | _ ->
+          Other )
+    |> Option.value ~default:Other
+  ;;
+end
+
 let main =
   let%bind () = Async_js.document_loaded () in
-  query "script[type=\"application/json\"]"
-  |> List.iter ~f:(fun element ->
-         Incr_dom.Start_app.start
-           (module Board)
-           ~bind_to:(element :> Dom.node Js.t)
-           ~initial_model:(parse_model (text_of element)) );
+  let route =
+    Dom_html.window##.location##.pathname |> Js.to_string |> Route.of_pathname
+  in
+  (match route with
+  | Game game_id ->
+    (* TODO, obviously... *)
+    ignore game_id;
+    let game_model =
+      Board.Model.create
+        [ { Board.Board_state.dimensions = {Dimensions.width = 11; height = 11}
+          ; rotation = None
+          ; annotations = []
+          ; stones = []
+          ; disabled = Location.Set.empty } ]
+    in
+    let root = Dom_html.getElementById_exn "game-container" in
+    Incr_dom.Start_app.start
+      (module Board)
+      ~bind_to:(root :> Dom.node Js.t)
+      ~initial_model:game_model
+  | Other
+  | Home ->
+    query {|script[type="application/json"]|}
+    |> List.iter ~f:(fun element ->
+           Incr_dom.Start_app.start
+             (module Board)
+             ~bind_to:(element :> Dom.node Js.t)
+             ~initial_model:(parse_model (text_of element)) ));
   Deferred.unit
 ;;
 
