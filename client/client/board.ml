@@ -1,3 +1,6 @@
+(* Hi yes hello don't look at this file. Nothing to see here. This is not an
+   example of how programming should be. This is... this is an organic,
+   free-range file right now. *)
 open! Core_kernel
 open! Incr_dom
 open! Import
@@ -48,7 +51,7 @@ module Action = struct
     | Annotation_between of Location.t * Location.t
     | Set_current_point of Point.t
     | Cancel_annotation
-    | Toggle_interaction
+    | Cycle_interaction_mode
   [@@deriving sexp_of]
 
   let should_log _ = true
@@ -416,9 +419,9 @@ let render_state state ~highlighted_hexes ~inject =
            (Option.map (touch_point event) ~f:(fun point ->
                 inject (Action.Set_current_point point) ))
            [ (* preventDefault() suppresses mouse events, which is good --
-              otherwise both fire. And it also suppresses long touch selecting
-              text, which is nice. But it suppresses the :active state, which is
-              sort of annoying. So we don't rely on that. *)
+                otherwise they'll fire after the touch events. It also
+                suppresses long touch selecting text, which is nice, and the
+                :active state, which is why we don't use that. *)
              Event.Prevent_default ])
     in
     let on_touchend event =
@@ -524,17 +527,17 @@ let render_state state ~highlighted_hexes ~inject =
     [board]
 ;;
 
-module Interaction = struct
+module Interaction_mode = struct
   type t =
-    | Toggle_annotation
-    | Toggle_stone
+    | Annotation
+    | Stone
   [@@deriving sexp_of, compare]
 
   let next = function
-    | Toggle_annotation ->
-      Toggle_stone
-    | Toggle_stone ->
-      Toggle_annotation
+    | Annotation ->
+      Stone
+    | Stone ->
+      Annotation
   ;;
 end
 
@@ -544,7 +547,7 @@ module Model = struct
     ; state_index : int
     ; current_point : Point.t option
     ; annotation_start : Location.t option
-    ; interaction : Interaction.t }
+    ; interaction_mode : Interaction_mode.t }
   [@@deriving sexp_of, fields, compare]
 
   let create states =
@@ -552,7 +555,7 @@ module Model = struct
     ; state_index = 0
     ; annotation_start = None
     ; current_point = None
-    ; interaction = Toggle_annotation }
+    ; interaction_mode = Annotation }
   ;;
 
   let cutoff t1 t2 = compare t1 t2 = 0
@@ -651,33 +654,34 @@ let change_board_state (model : Model.t) ~f =
 ;;
 
 let apply_annotation_between (model : Model.t) start_location end_location =
-  if Location.( = ) start_location end_location
-  then
-    match model.interaction with
-    | Toggle_annotation ->
-      change_board_state model ~f:(cycle_annotation_at_point start_location)
-    | Toggle_stone ->
-      change_board_state model ~f:(cycle_stone_at_point start_location)
-  else
-    let new_annotation : Annotation.t =
-      if (not (Location.adjacent start_location end_location))
-         && List.length (shared_neighbors start_location end_location) = 2
-      then Bridge (start_location, end_location)
-      else Line (start_location, end_location)
-    in
-    change_board_state model ~f:(fun board_state ->
-        let annotations =
-          if List.mem
-               board_state.annotations
-               new_annotation
-               ~equal:[%compare.equal: Annotation.t]
-          then
-            List.filter
-              board_state.annotations
-              ~f:(Fn.non ([%compare.equal: Annotation.t] new_annotation))
-          else new_annotation :: board_state.annotations
-        in
-        {board_state with annotations} )
+  match model.interaction_mode with
+  | Stone ->
+    if Location.( = ) start_location end_location
+    then change_board_state model ~f:(cycle_stone_at_point start_location)
+    else model
+  | Annotation ->
+    if Location.( = ) start_location end_location
+    then change_board_state model ~f:(cycle_annotation_at_point start_location)
+    else
+      let new_annotation : Annotation.t =
+        if (not (Location.adjacent start_location end_location))
+           && List.length (shared_neighbors start_location end_location) = 2
+        then Bridge (start_location, end_location)
+        else Line (start_location, end_location)
+      in
+      change_board_state model ~f:(fun board_state ->
+          let annotations =
+            if List.mem
+                 board_state.annotations
+                 new_annotation
+                 ~equal:[%compare.equal: Annotation.t]
+            then
+              List.filter
+                board_state.annotations
+                ~f:(Fn.non ([%compare.equal: Annotation.t] new_annotation))
+            else new_annotation :: board_state.annotations
+          in
+          {board_state with annotations} )
 ;;
 
 let apply_action model action _ ~schedule_action:_ =
@@ -690,8 +694,8 @@ let apply_action model action _ ~schedule_action:_ =
     {model with current_point = Some point}
   | Start_annotation location ->
     {model with annotation_start = Some location}
-  | Toggle_interaction ->
-    {model with interaction = Interaction.next model.interaction}
+  | Cycle_interaction_mode ->
+    {model with interaction_mode = Interaction_mode.next model.interaction_mode}
   | Annotation_between (start_location, end_location) ->
     { (apply_annotation_between model start_location end_location) with
       annotation_start = None }
@@ -755,18 +759,18 @@ let view (model : Model.t Incr.t) ~inject =
   let next_state_button =
     mobile_friendly_button "→" Action.Next_state [Attr.class_ "next-state"] ~inject
   in
-  let toggle_interaction_button =
-    let%map interaction = model >>| Model.interaction in
+  let cycle_interaction_mode_button =
+    let%map interaction_mode = model >>| Model.interaction_mode in
     let text =
-      match interaction with
-      | Toggle_annotation ->
+      match interaction_mode with
+      | Annotation ->
         "Annotation mode"
-      | Toggle_stone ->
+      | Stone ->
         "Stone placement mode"
     in
     Node.div
       [Attr.class_ "toolbar"]
-      [mobile_friendly_button ~inject text Action.Toggle_interaction []]
+      [mobile_friendly_button ~inject text Action.Cycle_interaction_mode []]
   in
   let debug_sexp =
     if render_sexps
@@ -778,18 +782,31 @@ let view (model : Model.t Incr.t) ~inject =
   in
   let highlighted_hexes =
     let%map start_location = model >>| Model.annotation_start
-    and current_point = model >>| Model.current_point in
+    and current_point = model >>| Model.current_point
+    and interaction_mode = model >>| Model.interaction_mode in
     (* When using a mouse, the current location is set when hovering, whether or
-       not the mouse is down. Minor performance optimization here. There might
-       be a way to prevent setting it when a button isn't held that will render
-       this less useful. *)
+       not the mouse is down. To prevent re-rendering the board constantly, we
+       short circuit here and don't do the [element_at] lookup if we haven't
+       started an interaction.
+
+       There might be a way to prevent setting it when a button isn't held that
+       will render this less useful. *)
     match start_location with
     | Some start_location ->
       let current_location =
         let open Option.Monad_infix in
         current_point >>= element_at >>= location_of_element
       in
-      cons_some current_location [start_location]
+      (match interaction_mode with
+      | Annotation ->
+        cons_some current_location [start_location]
+      | Stone ->
+        (match current_location with
+        | Some current_location
+          when Location.( = ) start_location current_location ->
+          [start_location]
+        | _ ->
+          []))
     | None ->
       []
   in
@@ -801,7 +818,7 @@ let view (model : Model.t Incr.t) ~inject =
   let%map page_indicator = page_indicator
   and svg = svg
   and debug_sexp = debug_sexp
-  and toggle_interaction_button = toggle_interaction_button
+  and cycle_interaction_mode_button = cycle_interaction_mode_button
   and state_count = state_count in
   let paging_controls =
     Option.some_if
@@ -813,7 +830,7 @@ let view (model : Model.t Incr.t) ~inject =
   Node.div
     []
     (List.filter_opt
-       [Some toggle_interaction_button; Some svg; paging_controls; debug_sexp])
+       [Some cycle_interaction_mode_button; Some svg; paging_controls; debug_sexp])
 ;;
 
 let create model ~old_model:_ ~inject =
