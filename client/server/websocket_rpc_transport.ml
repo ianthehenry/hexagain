@@ -10,6 +10,7 @@ let pong = WS.Frame.create ~opcode:Pong ()
 let close_ack = WS.Frame.close 0
 let close_timeout = WS.Frame.close 1
 
+(* TODO: is any of this state right? I have no idea. *)
 let make_websocket_transport reader writer =
   let app_to_ws, to_client = Pipe.create () in
   let from_client, ws_to_app = Pipe.create () in
@@ -40,7 +41,7 @@ let make_websocket_transport reader writer =
         | Pong ->
           None
         | _ ->
-          (* CR ihenry: log something here? *)
+          (* TODO: log something here? I don't expect anything else. *)
           None )
   in
   let strings_to_client =
@@ -51,7 +52,7 @@ let make_websocket_transport reader writer =
   let ws_log =
     Log.create ~level:`Debug ~output:[Log.Output.stdout ()] ~on_error:`Raise
   in
-  (* CR ihenry: do some sort of auth here? *)
+  (* TODO: auth? *)
   let server_finished =
     match%map WS.server ~log:ws_log ~app_to_ws ~ws_to_app ~reader ~writer () with
     | Error error ->

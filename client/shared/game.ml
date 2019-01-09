@@ -1,16 +1,15 @@
 open! Core_kernel
 
-module Id = struct
-  type t = int [@@deriving sexp_of, bin_io]
-end
-
+(* TODO: this module is currently confused about whether it represents a
+   database entity or a view of a current game state. *)
 type t =
-  { id : Id.t
+  { id : ID.Game.t
   ; config : Game_options.t
-  ; black_player : Player_id.t
-  ; white_player : Player_id.t
+  ; black_player : ID.Player.t
+  ; white_player : ID.Player.t
   ; stones : Location.t list
-  ; winner : Player_id.t option }
+  ; move_ids : ID.Move.t list
+  ; winner : ID.Player.t option }
 [@@deriving sexp_of, bin_io]
 
 (* TODO: this should take into account handicap *)
@@ -26,11 +25,11 @@ let whose_turn_is_it {white_player; black_player; stones; _} =
 
 let other_player_exn game player =
   let {white_player; black_player; _} = game in
-  if [%compare.equal: Player_id.t] player white_player
+  if [%compare.equal: ID.Player.t] player white_player
   then black_player
-  else if [%compare.equal: Player_id.t] player black_player
+  else if [%compare.equal: ID.Player.t] player black_player
   then white_player
-  else raise_s [%message "unknown player" (game : t) (player : Player_id.t)]
+  else raise_s [%message "unknown player" (game : t) (player : ID.Player.t)]
 ;;
 
 (* TODO: this should take into account handicap *)
@@ -44,7 +43,7 @@ let winning_player {stones; config; _} =
 let apply_action t = function
   | Action.Swap ->
     {t with black_player = t.white_player; white_player = t.black_player}
-  | Action.Drop location ->
+  | Action.Place_stone location ->
     let t' = {t with stones = location :: t.stones} in
     {t' with winner = winning_player t'}
   | Action.Resign ->

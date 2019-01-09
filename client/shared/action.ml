@@ -2,6 +2,6 @@ open! Core_kernel
 
 type t =
   | Swap
-  | Drop of Location.t
+  | Place_stone of Location.t
   | Resign
 [@@deriving sexp_of, bin_io]
