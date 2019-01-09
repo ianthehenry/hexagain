@@ -71,3 +71,4 @@ There's probably some real way to do this.
 - the jarring re-flow after the SVGs render is horrible
 - rendering of the actual board state is 0% incremental right now
 - rendering performance is pretty bad. all that blurring.
+- there's no hover state when using a mouse
