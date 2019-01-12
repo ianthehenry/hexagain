@@ -46,6 +46,7 @@
         {{ end }}
       </nav>
     </header>
+    <div id="status"></div>
     <main>{{ block "main" . }}{{ end }}</main>
     <footer><a href="https://ianthehenry.com/">Ian Henry</a> made this. Well, is making this. It's not done.</footer>
     {{ $script := resources.Get "main.js" | fingerprint }}

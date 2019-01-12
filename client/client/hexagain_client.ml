@@ -89,6 +89,14 @@ let main =
   in
   (match route with
   | Game game_id ->
+    Incr_dom.Start_app.start
+      (module Connection_app)
+      ~bind_to:(Dom_html.getElementById_exn "status" :> Dom.node Js.t)
+      ~initial_model:
+        Connection_app.Model.(
+          Authenticated
+            { Authenticated.player_id = ID.Player.of_string "0"
+            ; socket_state = Connection_app.Socket_state.Disconnected });
     (* TODO, obviously... *)
     ignore game_id;
     let game_model =

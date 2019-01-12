@@ -7,7 +7,6 @@ type t =
 [@@deriving compare]
 
 let to_string {width; height} = sprintf "%dx%d" width height
-let both (a, b) ~f = f a, f b
 
 let of_string str =
   let width, height = String.lsplit2_exn str ~on:'x' |> both ~f:int_of_string in

@@ -3,19 +3,11 @@
    free-range file right now. *)
 open! Core_kernel
 open! Incr_dom
-open! Import
 open! Js_of_ocaml
+open! Import
 
 let render_sexps = false
 let render_labels = false
-let testing pred x = if pred x then Some x else None
-let twice x = x, x
-let smaller ~compare a b = if compare a b < 0 then a else b
-let larger ~compare a b = if compare a b < 0 then b else a
-let append_some x list = Option.value_map x ~default:list ~f:(fun x -> list @ [x])
-let option_trying f x = Option.try_with (fun () -> f x)
-let cons_some opt list = Option.value_map opt ~default:list ~f:(fun x -> x :: list)
-let cons_if bool x xs = if bool then x :: xs else xs
 
 module Transform = struct
   type t =
@@ -57,9 +49,7 @@ module Action = struct
   let should_log _ = true
 end
 
-module State = struct
-  type t = unit
-end
+module State = Unit
 
 module Attr_ = struct
   open Vdom
@@ -273,13 +263,6 @@ module Edge = struct
       White
   ;;
 end
-
-let min_and_max_elt_exn list ~compare =
-  List.fold
-    ~init:(twice (List.hd_exn list))
-    (List.tl_exn list)
-    ~f:(fun (min, max) el -> smaller ~compare min el, larger ~compare max el)
-;;
 
 let location_of_element element =
   let open Option.Monad_infix in
@@ -558,7 +541,7 @@ module Model = struct
     ; interaction_mode = Annotation }
   ;;
 
-  let cutoff t1 t2 = compare t1 t2 = 0
+  let cutoff = [%compare.equal: t]
   let state_count t = Array.length t.states
 
   let change_state t delta =
