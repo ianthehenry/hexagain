@@ -9,31 +9,6 @@ open! Import
 let render_sexps = false
 let render_labels = false
 
-module Transform = struct
-  type t =
-    | Rotation of int
-    | Identity
-    | Translate of Point.t
-
-  let to_svg_string = function
-    | Rotation deg ->
-      sprintf "rotate(%d)" deg
-    | Translate {Point.x; y} ->
-      sprintf !"translate(%{strf}, %{strf})" x y
-    | Identity ->
-      ""
-  ;;
-
-  let inverse = function
-    | Rotation deg ->
-      Rotation (-deg)
-    | Translate point ->
-      Translate (Point.( * ) (-1.0) point)
-    | Identity ->
-      Identity
-  ;;
-end
-
 module Action = struct
   type t =
     | Next_state
@@ -51,35 +26,6 @@ end
 
 module State = Unit
 
-module Attr_ = struct
-  open Vdom
-
-  let view_box rect =
-    String.concat
-      ~sep:" "
-      ( [Rect.left rect; Rect.top rect; Rect.width rect; Rect.height rect]
-      |> List.map ~f:strf )
-    |> Attr.create "viewBox"
-  ;;
-
-  let points points =
-    String.concat
-      ~sep:","
-      (List.concat_map points ~f:(fun {Point.x; y} -> [strf x; strf y]))
-    |> Attr.create "points"
-  ;;
-
-  let transform transform = Attr.create "transform" (Transform.to_svg_string transform)
-
-  (* TODO: upstream these *)
-  type touchEvent = Dom_html.touchEvent
-
-  let on_touchend : (touchEvent Js.t -> Event.t) -> Attr.t = Attr.on "touchend"
-  let on_touchstart : (touchEvent Js.t -> Event.t) -> Attr.t = Attr.on "touchstart"
-  let on_touchmove : (touchEvent Js.t -> Event.t) -> Attr.t = Attr.on "touchmove"
-  let on_touchcancel : (touchEvent Js.t -> Event.t) -> Attr.t = Attr.on "touchcancel"
-end
-
 let mobile_friendly_button text action attrs ~inject =
   let open Vdom in
   Node.button
@@ -88,55 +34,6 @@ let mobile_friendly_button text action attrs ~inject =
     :: attrs )
     [Node.text text]
 ;;
-
-module Svg = struct
-  open Vdom
-
-  let circle {Point.x; y} radius attrs =
-    Node.svg
-      "circle"
-      ( [ Attr.create "cx" (strf x)
-        ; Attr.create "cy" (strf y)
-        ; Attr.create "r" (strf radius) ]
-      @ attrs )
-      []
-  ;;
-
-  let text str attrs = Node.svg "text" attrs [Node.text str]
-
-  let path path_instructions attrs =
-    let d =
-      String.concat
-        ~sep:" "
-        (List.map path_instructions ~f:Path_instruction.to_svg_string)
-    in
-    Node.svg "path" ([Attr.create "d" d] @ attrs) []
-  ;;
-
-  let line {Point.x = x1; y = y1} {Point.x = x2; y = y2} attrs =
-    Node.svg
-      "line"
-      ( [ Attr.create "x1" (strf x1)
-        ; Attr.create "y1" (strf y1)
-        ; Attr.create "x2" (strf x2)
-        ; Attr.create "y2" (strf y2) ]
-      @ attrs )
-      []
-  ;;
-
-  let polygon points attrs = Node.svg "polygon" ([Attr_.points points] @ attrs) []
-end
-
-module Board_state = struct
-  type t =
-    { dimensions : Dimensions.t
-    ; rotation : Rotation.t sexp_option
-    ; annotations : Annotation.t list [@sexp_drop_default] [@default []]
-    ; stones : (Color.t * Location.t) list
-    ; disabled : Location.Set.t
-           [@sexp_drop_if Location.Set.is_empty] [@default Location.Set.empty] }
-  [@@deriving sexp, compare]
-end
 
 let default_rotation = Rotation.Rotated
 let radius = 0.5
@@ -323,9 +220,9 @@ let render_state state ~highlighted_hexes ~inject =
   let board_transform =
     match rotation with
     | Rotated ->
-      Transform.Rotation (-30)
+      Css_transform.Rotation (-30)
     | Flat ->
-      Transform.Identity
+      Css_transform.Identity
   in
   let locations =
     let open List.Let_syntax in
@@ -457,8 +354,8 @@ let render_state state ~highlighted_hexes ~inject =
             ; Attr.class_ "label-container" ]
             [ Svg.text
                 (Location.to_string location)
-                [Attr.class_ "label"; Attr_.transform (Transform.inverse board_transform)]
-            ] )
+                [ Attr.class_ "label"
+                ; Attr_.transform (Css_transform.inverse board_transform) ] ] )
     else [])
     |> Node.svg "g" ~key:"labels" [Attr.class_ "labels"]
   in

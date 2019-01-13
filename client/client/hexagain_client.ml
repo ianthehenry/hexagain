@@ -40,7 +40,7 @@ module Move_abbreviation = struct
     in
     let states =
       List.map stones ~f:(fun stones ->
-          {Board.Board_state.dimensions; rotation; disabled; annotations = []; stones} )
+          {Board_state.dimensions; rotation; disabled; annotations = []; stones} )
     in
     List.drop states initial_stones
   ;;
@@ -49,9 +49,9 @@ end
 let parse_model text =
   let sexp = Sexp.of_string text in
   let states =
-    try [[%of_sexp: Board.Board_state.t] sexp] with _ ->
+    try [[%of_sexp: Board_state.t] sexp] with _ ->
       (try [%of_sexp: Move_abbreviation.t] sexp |> Move_abbreviation.to_board_states
-       with _ -> [%of_sexp: Board.Board_state.t list] sexp)
+       with _ -> [%of_sexp: Board_state.t list] sexp)
   in
   Board.Model.create states
 ;;
@@ -101,7 +101,7 @@ let main =
     ignore game_id;
     let game_model =
       Board.Model.create
-        [ { Board.Board_state.dimensions = {Dimensions.width = 11; height = 11}
+        [ { Board_state.dimensions = {Dimensions.width = 11; height = 11}
           ; rotation = None
           ; annotations = []
           ; stones = []
