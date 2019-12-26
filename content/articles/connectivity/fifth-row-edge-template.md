@@ -138,7 +138,7 @@ one of these templates (and the paths required to reach them) overlap. But
 that's hard and boring to do mechanically, so let's do it a little informally.
 
 The two triple templates cover the most area, so we'll start with all the points
-in trapezoid at which they intersect. Then we'll subtract each of the points
+in the trapezoid at which they intersect. Then we'll subtract each of the points
 spanned by a suspension bridge.
 
 <script type="application/json">
