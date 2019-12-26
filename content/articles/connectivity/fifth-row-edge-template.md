@@ -170,7 +170,7 @@ spanned by a suspension bridge.
 )
 </script>
 
-And an intrusion to the either of the rightmost points has an obvious response:
+And an intrusion into either of the rightmost points has an obvious response:
 
 <script type="application/json">
 ((dimensions 10x5)
@@ -191,7 +191,7 @@ And an intrusion to the either of the rightmost points has an obvious response:
 
 Which leaves us with three interesting weak points. We won't be able to respond
 to an intrusion at any of these points by reducing our path to a smaller
-template. Instead, we'll answer with with forcing moves that will eventually
+template. Instead, we'll answer with forcing moves that will eventually
 conspire to get us a connection.
 
 Let's go through these one at a time, starting with the topmost.
