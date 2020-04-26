@@ -1,5 +1,6 @@
 {
   "devDependencies": {
-    "autoprefixer": "^9.4.3"
-  }
+    "autoprefixer": "^9.7.0"
+  },
+  "browserslist": [ "last 2 versions" ]
 }
