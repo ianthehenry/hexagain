@@ -15,7 +15,7 @@ let text_of element =
 module Move_abbreviation = struct
   type t =
     { dimensions : Dimensions.t
-    ; rotation : Rotation.t sexp_option
+    ; rotation : Rotation.t option[@sexp.option]
     ; initial_stones : int
     ; moves : Location.t list
     ; disabled : Location.Set.t

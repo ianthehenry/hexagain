@@ -28,11 +28,26 @@ the assets directory.
 
 ## Changing the JavaScript
 
-This is trickier. You'll need `opam` and `dune`, but you'll also need to pin a
-custom [`incr_dom`](https://github.com/ianthehenry/incr_dom),
-[`async_extra`](https://github.com/ianthehenry/async_extra), and
-[`js_of_ocaml`](https://github.com/ianthehenry/js_of_ocaml) because... look,
-it's not the healthiest open source ecosystem.
+This is trickier.
+
+You'll need to install `opam` with your system package manager, and probably run
+things like `opam init` and the environment configuration stuff. Then set up a
+"switch," a local package sandbox, for Hexagain.
+
+```bash
+$ cd client/
+$ opam switch create . 4.10.0
+$ eval $(opam env)
+$ opam switch import deps
+```
+
+Wow! Everything worked and you got no errors! Great. No further questions. Lets
+get to work.
+
+**Note that every time you interact with this project, you will need to start
+with `eval $(opam env)` from the `client/` subdirectory, or else everything will
+be bad.** Unless you configured the auto-hook-switchy thing when you set up
+opam.
 
 To rebuild the JavaScript, `cd` into the `client/` subdirectory and run:
 
@@ -64,11 +79,3 @@ $ while true; do if cmp -s _build/default/client/hexagain_client.bc.js ../assets
 ```
 
 There's probably some real way to do this.
-
-# TODO
-
-- could show a preview when drawing annotations
-- the jarring re-flow after the SVGs render is horrible
-- rendering of the actual board state is 0% incremental right now
-- rendering performance is pretty bad. all that blurring.
-- there's no hover state when using a mouse

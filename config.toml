@@ -3,3 +3,6 @@ languageCode = "en-us"
 title = "Hexagain"
 disableHugoGeneratorInject = true
 sectionPagesMenu = "main"
+
+[markup.goldmark.renderer]
+unsafe = true

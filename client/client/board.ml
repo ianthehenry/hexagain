@@ -120,7 +120,7 @@ let render_annotation annotation =
         (point_at_corner ~radius:line_radius (Corner.inverse first_corner))
         [Attr_.transform (Rotation 30)]
     in
-    Node.svg
+    Node.create_svg
       "g"
       [Attr.class_ "annotation"; Attr_.transform (Translate (position at))]
       [corner_line DX; corner_line XZ; corner_line ZA]
@@ -265,7 +265,7 @@ let render_state state ~highlighted_hexes ~inject =
              [ Attr_.transform (Translate (position location))
              ; Attr.classes ["edge-marker"; color_class color] ]
            |> return )
-    |> Node.svg "g" ~key:"edge-decorations" []
+    |> Node.create_svg "g" ~key:"edge-decorations" []
   in
   let hexes =
     let on_mousedown event =
@@ -326,7 +326,7 @@ let render_state state ~highlighted_hexes ~inject =
           ; Attr_.on_touchcancel on_touchcancel
           ; Attr.on_mousedown on_mousedown
           ; Attr.on_mouseup on_mouseup ] )
-    |> Node.svg "g" ~key:"hexes" []
+    |> Node.create_svg "g" ~key:"hexes" []
   in
   let stones =
     List.map stones ~f:(fun (color, location) ->
@@ -334,10 +334,10 @@ let render_state state ~highlighted_hexes ~inject =
           (position location)
           (0.7 *. apothem)
           [Attr.classes ["stone"; color_class color]] )
-    |> Node.svg "g" ~key:"stones" [Attr.class_ "stones"]
+    |> Node.create_svg "g" ~key:"stones" [Attr.class_ "stones"]
   in
   let annotations =
-    Node.svg
+    Node.create_svg
       "g"
       ~key:"annotations"
       [Attr.class_ "annotations"]
@@ -347,7 +347,7 @@ let render_state state ~highlighted_hexes ~inject =
     (if render_labels
     then
       List.map locations ~f:(fun location ->
-          Node.svg
+          Node.create_svg
             "g"
             ~key:(Location.to_string location)
             [ Attr_.transform (Translate (position location))
@@ -357,10 +357,10 @@ let render_state state ~highlighted_hexes ~inject =
                 [ Attr.class_ "label"
                 ; Attr_.transform (Css_transform.inverse board_transform) ] ] )
     else [])
-    |> Node.svg "g" ~key:"labels" [Attr.class_ "labels"]
+    |> Node.create_svg "g" ~key:"labels" [Attr.class_ "labels"]
   in
   let board =
-    Node.svg
+    Node.create_svg
       "g"
       [Attr.class_ "board"; Attr_.transform board_transform]
       [edge_decorations; hexes; stones; annotations; labels]
@@ -395,11 +395,11 @@ let render_state state ~highlighted_hexes ~inject =
         | Flat ->
           0.2)
   in
-  let max_height = view_box.size.height *. 60.0 in
-  Node.svg
+  let max_height = view_box.size.height *. 60.0 |> Float.round_nearest |> Int.of_float in
+  Node.create_svg
     "svg"
     [ Attr_.view_box view_box
-    ; Vdom.Attr.style ["max-height", strf max_height ^ "px"]
+    ; Vdom.Attr.style (Css_gen.max_height (`Px max_height))
     ; Attr.create "preserveAspectRatio" "xMidYMid meet"
       (* prevents double-clicking or dragging outside the frame from selecting
       text *)
@@ -529,7 +529,7 @@ let cycle_stone_at_point location board_state =
 let change_board_state (model : Model.t) ~f =
   (* TODO: get a better immutable vector structure *)
   let new_board_states = Array.copy model.states in
-  Array.replace new_board_states model.state_index ~f;
+  new_board_states.(model.state_index) <- f model.states.(model.state_index);
   {model with states = new_board_states}
 ;;
 
