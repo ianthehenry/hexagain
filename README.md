@@ -35,7 +35,7 @@ things like `opam init` and the environment configuration stuff. Then set up a
 "switch," a local package sandbox, for Hexagain.
 
 ```bash
-$ cd client/
+$ cd app/
 $ opam switch create . 4.10.0
 $ eval $(opam env)
 $ opam switch import deps
@@ -45,11 +45,11 @@ Wow! Everything worked and you got no errors! Great. No further questions. Lets
 get to work.
 
 **Note that every time you interact with this project, you will need to start
-with `eval $(opam env)` from the `client/` subdirectory, or else everything will
+with `eval $(opam env)` from the `app/` subdirectory, or else everything will
 be bad.** Unless you configured the auto-hook-switchy thing when you set up
 opam.
 
-To rebuild the JavaScript, `cd` into the `client/` subdirectory and run:
+To rebuild the JavaScript, `cd` into the `app/` subdirectory and run:
 
 ```bash
 $ dune build --profile=production client/hexagain_client.bc.js
@@ -72,7 +72,7 @@ There is a server but it's not really a thing that... works. Just ignore that
 for now.
 
 I've been using this really janky one-liner to move the build artifact into the
-hugo assets directory (also from the `client/` subdirectory):
+hugo assets directory (also from the `app/` subdirectory):
 
 ```bash
 $ while true; do if cmp -s _build/default/client/hexagain_client.bc.js ../assets/main.js; then : ; else echo update $(date); cp _build/default/client/hexagain_client.bc.js ../assets/main.js; fi; sleep 1; done
