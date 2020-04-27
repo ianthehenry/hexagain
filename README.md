@@ -41,7 +41,7 @@ eval $(opam env)
 opam switch import deps
 ```
 
-Wow! Everything worked and you got no errors! Great. No further questions. Lets
+Wow! Everything worked and you got no errors! Great. No further questions. Let's
 get to work.
 
 **Note that every time you interact with this project, you will need to start
