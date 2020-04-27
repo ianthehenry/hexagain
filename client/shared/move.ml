@@ -18,7 +18,8 @@ end
 module Request = struct
   type t =
     { action : Action.t
-    ; game_id : ID.Game.t }
+    ; game_id : ID.Game.t
+    }
   [@@deriving sexp_of, bin_io]
 end
 
@@ -27,5 +28,6 @@ type t =
   ; action : Action.t
   ; at : Time_ns.t
   ; player_id : ID.Player.t
-  ; game_id : ID.Game.t }
+  ; game_id : ID.Game.t
+  }
 [@@deriving sexp_of, bin_io]

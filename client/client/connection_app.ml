@@ -19,7 +19,8 @@ module Model = struct
   module Authenticated = struct
     type t =
       { player_id : ID.Player.t
-      ; socket_state : Socket_state.t }
+      ; socket_state : Socket_state.t
+      }
     [@@deriving sexp_of, fields, compare]
   end
 
@@ -29,10 +30,8 @@ module Model = struct
   [@@deriving sexp_of, compare]
 
   let preview_authenticated = function
-    | Anonymous ->
-      None
-    | Authenticated authenticated ->
-      Some authenticated
+    | Anonymous -> None
+    | Authenticated authenticated -> Some authenticated
   ;;
 
   let cutoff = [%compare.equal: t]
@@ -43,17 +42,16 @@ module Action = struct
 end
 
 module State = struct
-  type t = {rpc_connection : Rpc.Connection.t Or_error.t Mvar.Read_write.t}
+  type t = { rpc_connection : Rpc.Connection.t Or_error.t Mvar.Read_write.t }
   [@@deriving fields]
 end
 
 let apply_action model action _state ~schedule_action:_ =
-  match (action : Action.t) with Set_socket_state socket_state ->
+  match (action : Action.t) with
+  | Set_socket_state socket_state ->
     (match (model : Model.t) with
-    | Anonymous ->
-      failwith "socket state changed while anonymous"
-    | Authenticated model ->
-      Model.Authenticated {model with socket_state})
+    | Anonymous -> failwith "socket state changed while anonymous"
+    | Authenticated model -> Model.Authenticated { model with socket_state })
 ;;
 
 let view_authenticated (model : Model.Authenticated.t Incr.t) =
@@ -62,17 +60,20 @@ let view_authenticated (model : Model.Authenticated.t Incr.t) =
   let socket_state =
     let%map socket_state = model >>| Model.Authenticated.socket_state in
     let text = sprintf !"%{sexp: Socket_state.t}" socket_state in
-    Node.div [] [Node.text text]
+    Node.div [] [ Node.text text ]
   in
   let%map socket_state = socket_state in
-  Node.div [] [socket_state]
+  Node.div [] [ socket_state ]
 ;;
 
 (* TODO: So, this is interesting, and I don't really know how to think about
    incremental variants in general. But this might work? Maybe? Need to figure
    out if there's a "right" way to do this. *)
 let incr_value_map
-    (value : 'a option Incr.t) ~(f : 'a Incr.t -> 'b Incr.t) ~(default : 'b Incr.t) =
+    (value : 'a option Incr.t)
+    ~(f : 'a Incr.t -> 'b Incr.t)
+    ~(default : 'b Incr.t)
+  =
   let open Incr.Let_syntax in
   Incr.if_
     (value >>| Option.is_some)
@@ -86,7 +87,7 @@ let view (model : Model.t Incr.t) ~inject:_ =
   incr_value_map
     (model >>| Model.preview_authenticated)
     ~f:view_authenticated
-    ~default:(return (Node.div [] [Node.text "anon"]))
+    ~default:(return (Node.div [] [ Node.text "anon" ]))
 ;;
 
 let connect_loop state ~schedule_action =
@@ -125,7 +126,7 @@ let connect_loop state ~schedule_action =
 ;;
 
 let on_startup ~schedule_action _ =
-  let state = {State.rpc_connection = Mvar.create ()} in
+  let state = { State.rpc_connection = Mvar.create () } in
   connect_loop state ~schedule_action;
   Deferred.return state
 ;;

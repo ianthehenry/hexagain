@@ -6,15 +6,15 @@ open Incr_dom.Vdom
 let view_box rect =
   String.concat
     ~sep:" "
-    ( [Rect.left rect; Rect.top rect; Rect.width rect; Rect.height rect]
-    |> List.map ~f:strf )
+    ([ Rect.left rect; Rect.top rect; Rect.width rect; Rect.height rect ]
+    |> List.map ~f:strf)
   |> Attr.create "viewBox"
 ;;
 
 let points points =
   String.concat
     ~sep:","
-    (List.concat_map points ~f:(fun {Point.x; y} -> [strf x; strf y]))
+    (List.concat_map points ~f:(fun { Point.x; y } -> [ strf x; strf y ]))
   |> Attr.create "points"
 ;;
 

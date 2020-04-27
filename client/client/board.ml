@@ -29,10 +29,10 @@ module State = Unit
 let mobile_friendly_button text action attrs ~inject =
   let open Vdom in
   Node.button
-    ( Attr.on "touchstart" (const Event.Ignore)
+    (Attr.on "touchstart" (const Event.Ignore)
     :: Attr.on_click (fun _ -> inject action)
-    :: attrs )
-    [Node.text text]
+    :: attrs)
+    [ Node.text text ]
 ;;
 
 let default_rotation = Rotation.Rotated
@@ -41,35 +41,28 @@ let apothem = 0.5 *. sqrt 3.0 *. radius
 let spacing = apothem *. sqrt 3.0
 
 let color_class = function
-  | Color.White ->
-    "white"
-  | Color.Black ->
-    "black"
+  | Color.White -> "white"
+  | Color.Black -> "black"
 ;;
 
 let point_at_corner corner ~radius =
   let corner_int =
     match (corner : Corner.t) with
-    | WE ->
-      4
-    | ED ->
-      5
-    | DX ->
-      0
-    | XZ ->
-      1
-    | ZA ->
-      2
-    | AW ->
-      3
+    | WE -> 4
+    | ED -> 5
+    | DX -> 0
+    | XZ -> 1
+    | ZA -> 2
+    | AW -> 3
   in
   let angle = (float corner_int +. 0.5) *. Float.pi *. 2.0 /. 6.0 in
-  {Point.x = Float.cos angle *. radius; y = Float.sin angle *. radius}
+  { Point.x = Float.cos angle *. radius; y = Float.sin angle *. radius }
 ;;
 
 let position (location : Location.t) =
   { Point.x = (float (location.col * 2) *. apothem) +. (apothem *. float location.row)
-  ; y = spacing *. float location.row }
+  ; y = spacing *. float location.row
+  }
 ;;
 
 let get_hex =
@@ -87,7 +80,7 @@ let render_annotation annotation =
   match (annotation : Annotation.t) with
   | Bridge (from, to_) ->
     (match shared_neighbors from to_ with
-    | [span; span'] ->
+    | [ span; span' ] ->
       let span_direction = Location.direction_between_exn span span' in
       let control1 =
         Point.average
@@ -104,26 +97,25 @@ let render_annotation annotation =
       Svg.path
         [ Path_instruction.Move (position from)
         ; Path_instruction.Quadratic (control1, position to_)
-        ; Path_instruction.Quadratic (control2, position from) ]
-        [Attr.class_ "annotation"]
-    | _ ->
-      failwith "illegal bridge")
+        ; Path_instruction.Quadratic (control2, position from)
+        ]
+        [ Attr.class_ "annotation" ]
+    | _ -> failwith "illegal bridge")
   | Line (from, to_) ->
-    Svg.line (position from) (position to_) [Attr.class_ "annotation"]
-  | Dot at ->
-    Svg.circle (position at) 0.1 [Attr.class_ "annotation"]
+    Svg.line (position from) (position to_) [ Attr.class_ "annotation" ]
+  | Dot at -> Svg.circle (position at) 0.1 [ Attr.class_ "annotation" ]
   | Star at ->
     let corner_line first_corner =
       let line_radius = 0.3 *. apothem in
       Svg.line
         (point_at_corner ~radius:line_radius first_corner)
         (point_at_corner ~radius:line_radius (Corner.inverse first_corner))
-        [Attr_.transform (Rotation 30)]
+        [ Attr_.transform (Rotation 30) ]
     in
     Node.create_svg
       "g"
-      [Attr.class_ "annotation"; Attr_.transform (Translate (position at))]
-      [corner_line DX; corner_line XZ; corner_line ZA]
+      [ Attr.class_ "annotation"; Attr_.transform (Translate (position at)) ]
+      [ corner_line DX; corner_line XZ; corner_line ZA ]
 ;;
 
 module Edge = struct
@@ -177,7 +169,7 @@ let initial_location_of_event event =
 let touch_point event =
   Option.map
     (event##.changedTouches##item 0 |> Js.Opt.to_option)
-    ~f:(fun touch -> {Point.x = touch##.clientX; y = touch##.clientY})
+    ~f:(fun touch -> { Point.x = touch##.clientX; y = touch##.clientY })
 ;;
 
 let element_at (point : Point.t) =
@@ -215,27 +207,23 @@ let actions ~inject events = Vdom.Event.Many (List.map events ~f:inject)
 
 let render_state state ~highlighted_hexes ~inject =
   let open Vdom in
-  let {Board_state.dimensions; rotation; annotations; stones; disabled} = state in
+  let { Board_state.dimensions; rotation; annotations; stones; disabled } = state in
   let rotation = Option.value rotation ~default:default_rotation in
   let board_transform =
     match rotation with
-    | Rotated ->
-      Css_transform.Rotation (-30)
-    | Flat ->
-      Css_transform.Identity
+    | Rotated -> Css_transform.Rotation (-30)
+    | Flat -> Css_transform.Identity
   in
   let locations =
     let open List.Let_syntax in
     let%bind row = List.init dimensions.height ~f:Fn.id in
     let%bind col = List.init dimensions.width ~f:Fn.id in
-    let location = {Location.row; col} in
-    if Location.Set.mem disabled location then [] else [location]
+    let location = { Location.row; col } in
+    if Location.Set.mem disabled location then [] else [ location ]
   in
   let location_set = Location.Set.of_list locations in
   let valid_edges =
-    if Set.is_empty disabled
-    then Edge.Set.of_list Edge.all
-    else Edge.Set.singleton Bottom
+    if Set.is_empty disabled then Edge.Set.of_list Edge.all else Edge.Set.singleton Bottom
   in
   let edge_decorations =
     List.map locations ~f:Location.neighbors
@@ -263,8 +251,9 @@ let render_state state ~highlighted_hexes ~inject =
            Svg.polygon
              corners
              [ Attr_.transform (Translate (position location))
-             ; Attr.classes ["edge-marker"; color_class color] ]
-           |> return )
+             ; Attr.classes [ "edge-marker"; color_class color ]
+             ]
+           |> return)
     |> Node.create_svg "g" ~key:"edge-decorations" []
   in
   let hexes =
@@ -284,32 +273,32 @@ let render_state state ~highlighted_hexes ~inject =
       Event.Many
         (List.filter_opt
            [ Option.map (initial_location_of_event event) ~f:(fun location ->
-                 inject (Action.Start_annotation location) )
+                 inject (Action.Start_annotation location))
            ; Option.map (touch_point event) ~f:(fun point ->
-                 inject (Action.Set_current_point point) )
+                 inject (Action.Set_current_point point))
              (* preventDefault() suppresses mouse events, which is good --
-               otherwise both fire. And it also suppresses long touch selecting text,
-               which is nice. But it suppresses the :active state, which is sort of
-               annoying. So we don't rely on that. *)
-           ; Some Event.Prevent_default ])
+                otherwise both fire. And it also suppresses long touch selecting text,
+                which is nice. But it suppresses the :active state, which is sort of
+                annoying. So we don't rely on that. *)
+           ; Some Event.Prevent_default
+           ])
     in
     let on_touchmove event =
       Event.Many
         (cons_some
            (Option.map (touch_point event) ~f:(fun point ->
-                inject (Action.Set_current_point point) ))
+                inject (Action.Set_current_point point)))
            [ (* preventDefault() suppresses mouse events, which is good --
                 otherwise they'll fire after the touch events. It also
                 suppresses long touch selecting text, which is nice, and the
                 :active state, which is why we don't use that. *)
-             Event.Prevent_default ])
+             Event.Prevent_default
+           ])
     in
     let on_touchend event =
       match touch_start_and_end event with
-      | Some (start, end_) ->
-        inject (Action.Annotation_between (start, end_))
-      | None ->
-        inject Action.Cancel_annotation
+      | Some (start, end_) -> inject (Action.Annotation_between (start, end_))
+      | None -> inject Action.Cancel_annotation
     in
     let on_touchcancel _ = inject Action.Cancel_annotation in
     List.map locations ~f:(fun location ->
@@ -318,14 +307,15 @@ let render_state state ~highlighted_hexes ~inject =
         in
         get_hex
           location
-          [ Attr.classes (cons_if highlight "highlight" ["hex"])
+          [ Attr.classes (cons_if highlight "highlight" [ "hex" ])
           ; Attr.create "data-location" (Location.to_string location)
           ; Attr_.on_touchstart on_touchstart
           ; Attr_.on_touchmove on_touchmove
           ; Attr_.on_touchend on_touchend
           ; Attr_.on_touchcancel on_touchcancel
           ; Attr.on_mousedown on_mousedown
-          ; Attr.on_mouseup on_mouseup ] )
+          ; Attr.on_mouseup on_mouseup
+          ])
     |> Node.create_svg "g" ~key:"hexes" []
   in
   let stones =
@@ -333,14 +323,14 @@ let render_state state ~highlighted_hexes ~inject =
         Svg.circle
           (position location)
           (0.7 *. apothem)
-          [Attr.classes ["stone"; color_class color]] )
-    |> Node.create_svg "g" ~key:"stones" [Attr.class_ "stones"]
+          [ Attr.classes [ "stone"; color_class color ] ])
+    |> Node.create_svg "g" ~key:"stones" [ Attr.class_ "stones" ]
   in
   let annotations =
     Node.create_svg
       "g"
       ~key:"annotations"
-      [Attr.class_ "annotations"]
+      [ Attr.class_ "annotations" ]
       (List.map annotations ~f:render_annotation)
   in
   let labels =
@@ -351,19 +341,22 @@ let render_state state ~highlighted_hexes ~inject =
             "g"
             ~key:(Location.to_string location)
             [ Attr_.transform (Translate (position location))
-            ; Attr.class_ "label-container" ]
+            ; Attr.class_ "label-container"
+            ]
             [ Svg.text
                 (Location.to_string location)
                 [ Attr.class_ "label"
-                ; Attr_.transform (Css_transform.inverse board_transform) ] ] )
+                ; Attr_.transform (Css_transform.inverse board_transform)
+                ]
+            ])
     else [])
-    |> Node.create_svg "g" ~key:"labels" [Attr.class_ "labels"]
+    |> Node.create_svg "g" ~key:"labels" [ Attr.class_ "labels" ]
   in
   let board =
     Node.create_svg
       "g"
-      [Attr.class_ "board"; Attr_.transform board_transform]
-      [edge_decorations; hexes; stones; annotations; labels]
+      [ Attr.class_ "board"; Attr_.transform board_transform ]
+      [ edge_decorations; hexes; stones; annotations; labels ]
   in
   let view_box =
     match rotation with
@@ -378,11 +371,13 @@ let render_state state ~highlighted_hexes ~inject =
       Rect.create ~left ~right ~top ~bottom
       |> Rect.pad ~horizontal:apothem ~vertical:radius
     | Rotated ->
-      { Rect.origin = {Point.x = -.radius; y = -.apothem *. float dimensions.height}
+      { Rect.origin = { Point.x = -.radius; y = -.apothem *. float dimensions.height }
       ; size =
           { Size.width =
               (spacing *. float ((dimensions.height - 1) * 2)) +. (2.0 *. radius)
-          ; height = apothem *. float (dimensions.height * 2) } }
+          ; height = apothem *. float (dimensions.height * 2)
+          }
+      }
   in
   let view_box =
     Rect.pad
@@ -390,10 +385,8 @@ let render_state state ~highlighted_hexes ~inject =
       ~horizontal:0.25
       ~vertical:
         (match rotation with
-        | Rotated ->
-          0.25
-        | Flat ->
-          0.2)
+        | Rotated -> 0.25
+        | Flat -> 0.2)
   in
   let max_height = view_box.size.height *. 60.0 |> Float.round_nearest |> Int.of_float in
   Node.create_svg
@@ -402,9 +395,10 @@ let render_state state ~highlighted_hexes ~inject =
     ; Vdom.Attr.style (Css_gen.max_height (`Px max_height))
     ; Attr.create "preserveAspectRatio" "xMidYMid meet"
       (* prevents double-clicking or dragging outside the frame from selecting
-      text *)
-    ; Attr.on_mousedown (const Event.Prevent_default) ]
-    [board]
+         text *)
+    ; Attr.on_mousedown (const Event.Prevent_default)
+    ]
+    [ board ]
 ;;
 
 module Interaction_mode = struct
@@ -414,10 +408,8 @@ module Interaction_mode = struct
   [@@deriving sexp_of, compare]
 
   let next = function
-    | Annotation ->
-      Stone
-    | Stone ->
-      Annotation
+    | Annotation -> Stone
+    | Stone -> Annotation
   ;;
 end
 
@@ -427,7 +419,8 @@ module Model = struct
     ; state_index : int
     ; current_point : Point.t option
     ; annotation_start : Location.t option
-    ; interaction_mode : Interaction_mode.t }
+    ; interaction_mode : Interaction_mode.t
+    }
   [@@deriving sexp_of, fields, compare]
 
   let create states =
@@ -435,7 +428,8 @@ module Model = struct
     ; state_index = 0
     ; annotation_start = None
     ; current_point = None
-    ; interaction_mode = Annotation }
+    ; interaction_mode = Annotation
+    }
   ;;
 
   let cutoff = [%compare.equal: t]
@@ -449,59 +443,42 @@ module Model = struct
 end
 
 let next_annotation location : Annotation.t option -> Annotation.t option = function
-  | None ->
-    Some (Dot location)
-  | Some (Dot loc) ->
-    Some (Star loc)
-  | Some (Star _) ->
-    None
-  | Some (Line _ | Bridge _) ->
-    failwith "no"
+  | None -> Some (Dot location)
+  | Some (Dot loc) -> Some (Star loc)
+  | Some (Star _) -> None
+  | Some (Line _ | Bridge _) -> failwith "no"
 ;;
 
 let annotation_at_point (board_state : Board_state.t) location =
   List.find board_state.annotations ~f:(function
-      | Dot loc ->
-        Location.equal loc location
-      | Star loc ->
-        Location.equal loc location
-      | Bridge _ ->
-        false
-      | Line _ ->
-        false )
+      | Dot loc -> Location.equal loc location
+      | Star loc -> Location.equal loc location
+      | Bridge _ -> false
+      | Line _ -> false)
 ;;
 
 let set_annotation_at_point (board_state : Board_state.t) location annotation =
   { board_state with
     annotations =
       List.filter board_state.annotations ~f:(function
-          | Dot loc ->
-            not (Location.equal loc location)
-          | Star loc ->
-            not (Location.equal loc location)
-          | Bridge _ ->
-            true
-          | Line _ ->
-            true )
-      |> cons_some annotation }
+          | Dot loc -> not (Location.equal loc location)
+          | Star loc -> not (Location.equal loc location)
+          | Bridge _ -> true
+          | Line _ -> true)
+      |> cons_some annotation
+  }
 ;;
 
 let next_stone : Color.t option -> Color.t option = function
-  | None ->
-    Some Black
-  | Some Black ->
-    Some White
-  | Some White ->
-    None
+  | None -> Some Black
+  | Some Black -> Some White
+  | Some White -> None
 ;;
 
 let stone_at_point (board_state : Board_state.t) location =
   List.find_map board_state.stones ~f:(function
-      | color, loc
-        when Location.equal loc location ->
-        Some color
-      | _ ->
-        None )
+      | color, loc when Location.equal loc location -> Some color
+      | _ -> None)
 ;;
 
 let set_stone_at_point (board_state : Board_state.t) (location : Location.t) color =
@@ -509,7 +486,8 @@ let set_stone_at_point (board_state : Board_state.t) (location : Location.t) col
     stones =
       board_state.stones
       |> List.filter ~f:(fun (_, loc) -> not (Location.equal loc location))
-      |> cons_some (Option.map color ~f:(fun color -> color, location)) }
+      |> cons_some (Option.map color ~f:(fun color -> color, location))
+  }
 ;;
 
 let cycle_annotation_at_point location board_state =
@@ -530,7 +508,7 @@ let change_board_state (model : Model.t) ~f =
   (* TODO: get a better immutable vector structure *)
   let new_board_states = Array.copy model.states in
   new_board_states.(model.state_index) <- f model.states.(model.state_index);
-  {model with states = new_board_states}
+  { model with states = new_board_states }
 ;;
 
 let apply_annotation_between (model : Model.t) start_location end_location =
@@ -542,7 +520,7 @@ let apply_annotation_between (model : Model.t) start_location end_location =
   | Annotation ->
     if Location.( = ) start_location end_location
     then change_board_state model ~f:(cycle_annotation_at_point start_location)
-    else
+    else (
       let new_annotation : Annotation.t =
         if (not (Location.adjacent start_location end_location))
            && List.length (shared_neighbors start_location end_location) = 2
@@ -561,33 +539,29 @@ let apply_annotation_between (model : Model.t) start_location end_location =
                 ~f:(Fn.non ([%compare.equal: Annotation.t] new_annotation))
             else new_annotation :: board_state.annotations
           in
-          {board_state with annotations} )
+          { board_state with annotations }))
 ;;
 
 let apply_action model action _ ~schedule_action:_ =
   match (action : Action.t) with
-  | Next_state ->
-    Model.change_state model 1
-  | Prev_state ->
-    Model.change_state model (-1)
-  | Set_current_point point ->
-    {model with current_point = Some point}
-  | Start_annotation location ->
-    {model with annotation_start = Some location}
+  | Next_state -> Model.change_state model 1
+  | Prev_state -> Model.change_state model (-1)
+  | Set_current_point point -> { model with current_point = Some point }
+  | Start_annotation location -> { model with annotation_start = Some location }
   | Cycle_interaction_mode ->
-    {model with interaction_mode = Interaction_mode.next model.interaction_mode}
+    { model with interaction_mode = Interaction_mode.next model.interaction_mode }
   | Annotation_between (start_location, end_location) ->
     { (apply_annotation_between model start_location end_location) with
-      annotation_start = None }
+      annotation_start = None
+    }
   | End_annotation end_location ->
     (match model.annotation_start with
     | Some start_location ->
       { (apply_annotation_between model start_location end_location) with
-        annotation_start = None }
-    | None ->
-      model)
-  | Cancel_annotation ->
-    {model with annotation_start = None}
+        annotation_start = None
+      }
+    | None -> model)
+  | Cancel_annotation -> { model with annotation_start = None }
 ;;
 
 let on_startup ~schedule_action _ =
@@ -599,7 +573,7 @@ let on_startup ~schedule_action _ =
     Dom_html.Event.mouseup
     (Dom.handler (fun _ ->
          schedule_action Action.Cancel_annotation;
-         Js.bool true ))
+         Js.bool true))
     (Js.bool false)
   |> (ignore : Dom.event_listener_id -> unit);
   Dom_html.addEventListener
@@ -608,8 +582,8 @@ let on_startup ~schedule_action _ =
     (Dom.handler (fun event ->
          schedule_action
            (Action.Set_current_point
-              {Point.x = float event##.clientX; y = float event##.clientY});
-         Js.bool true ))
+              { Point.x = float event##.clientX; y = float event##.clientY });
+         Js.bool true))
     (Js.bool false)
   |> (ignore : Dom.event_listener_id -> unit);
   Async_kernel.Deferred.unit
@@ -626,7 +600,7 @@ let view (model : Model.t Incr.t) ~inject =
   in
   let page_indicator =
     let%map page_text = page_text in
-    Node.span [Attr.class_ "page-indicator"] [Node.text page_text]
+    Node.span [ Attr.class_ "page-indicator" ] [ Node.text page_text ]
   in
   let state =
     let%map state_index = model >>| Model.state_index
@@ -634,30 +608,30 @@ let view (model : Model.t Incr.t) ~inject =
     states.(state_index)
   in
   let prev_state_button =
-    mobile_friendly_button "←" Action.Prev_state [Attr.class_ "prev-state"] ~inject
+    mobile_friendly_button "←" Action.Prev_state [ Attr.class_ "prev-state" ] ~inject
   in
   let next_state_button =
-    mobile_friendly_button "→" Action.Next_state [Attr.class_ "next-state"] ~inject
+    mobile_friendly_button "→" Action.Next_state [ Attr.class_ "next-state" ] ~inject
   in
   let cycle_interaction_mode_button =
     let%map interaction_mode = model >>| Model.interaction_mode in
     let text =
       match interaction_mode with
-      | Annotation ->
-        "Annotation mode"
-      | Stone ->
-        "Stone placement mode"
+      | Annotation -> "Annotation mode"
+      | Stone -> "Stone placement mode"
     in
     Node.div
-      [Attr.class_ "toolbar"]
-      [mobile_friendly_button ~inject text Action.Cycle_interaction_mode []]
+      [ Attr.class_ "toolbar" ]
+      [ mobile_friendly_button ~inject text Action.Cycle_interaction_mode [] ]
   in
   let debug_sexp =
     if render_sexps
-    then
+    then (
       let%map sexp = state >>| [%sexp_of: Board_state.t] in
       Some
-        (Node.textarea [Attr.class_ "sexp"] [Node.text (Sexp_pretty.sexp_to_string sexp)])
+        (Node.textarea
+           [ Attr.class_ "sexp" ]
+           [ Node.text (Sexp_pretty.sexp_to_string sexp) ]))
     else return None
   in
   let highlighted_hexes =
@@ -678,17 +652,13 @@ let view (model : Model.t Incr.t) ~inject =
         current_point >>= element_at >>= location_of_element
       in
       (match interaction_mode with
-      | Annotation ->
-        cons_some current_location [start_location]
+      | Annotation -> cons_some current_location [ start_location ]
       | Stone ->
         (match current_location with
-        | Some current_location
-          when Location.( = ) start_location current_location ->
-          [start_location]
-        | _ ->
-          []))
-    | None ->
-      []
+        | Some current_location when Location.( = ) start_location current_location ->
+          [ start_location ]
+        | _ -> []))
+    | None -> []
   in
   let svg =
     let%map state = state
@@ -704,13 +674,13 @@ let view (model : Model.t Incr.t) ~inject =
     Option.some_if
       (state_count > 1)
       (Node.div
-         [Attr.class_ "paging-controls"]
-         [prev_state_button; page_indicator; next_state_button])
+         [ Attr.class_ "paging-controls" ]
+         [ prev_state_button; page_indicator; next_state_button ])
   in
   Node.div
     []
     (List.filter_opt
-       [Some cycle_interaction_mode_button; Some svg; paging_controls; debug_sexp])
+       [ Some cycle_interaction_mode_button; Some svg; paging_controls; debug_sexp ])
 ;;
 
 let create model ~old_model:_ ~inject =

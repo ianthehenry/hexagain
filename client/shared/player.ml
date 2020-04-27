@@ -4,5 +4,6 @@ module ID = ID.Move
 type t =
   { id : ID.t
   ; name : string
-  ; email : string }
+  ; email : string
+  }
 [@@deriving sexp_of, bin_io]

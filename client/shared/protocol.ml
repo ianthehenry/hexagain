@@ -5,7 +5,8 @@ module Challenge_parameters = struct
   type t =
     { options : Game_options.t
     ; opponent_id : ID.Player.t
-    ; opponent_starts : bool }
+    ; opponent_starts : bool
+    }
   [@@deriving sexp_of, bin_io]
 end
 

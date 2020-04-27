@@ -10,16 +10,10 @@ type t =
 [@@deriving sexp_of, enumerate]
 
 let inverse = function
-  | W ->
-    X
-  | E ->
-    Z
-  | A ->
-    D
-  | D ->
-    A
-  | Z ->
-    E
-  | X ->
-    W
+  | W -> X
+  | E -> Z
+  | A -> D
+  | D -> A
+  | Z -> E
+  | X -> W
 ;;

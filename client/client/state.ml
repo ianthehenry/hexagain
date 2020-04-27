@@ -12,7 +12,8 @@ end
 module Authenticated = struct
   type t =
     { player : ID.Player.t
-    ; socket_state : Socket_state.t }
+    ; socket_state : Socket_state.t
+    }
   [@@deriving sexp_of, compare]
 end
 

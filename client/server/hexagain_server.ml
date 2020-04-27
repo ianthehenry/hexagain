@@ -7,7 +7,8 @@ module State = struct
   type t =
     { games : Game.t ID.Game.Table.t
     ; players : Player.t ID.Player.Table.t
-    ; moves : Move.t ID.Move.Table.t }
+    ; moves : Move.t ID.Move.Table.t
+    }
   [@@deriving sexp_of]
 end
 
@@ -17,7 +18,8 @@ end
 
 type t =
   { state : State.t
-  ; sequencer : unit Sequencer.t }
+  ; sequencer : unit Sequencer.t
+  }
 
 let handle_action t action =
   Log.Global.sexp [%message "handling" (t.state : State.t) (action : Action.t)];
@@ -26,26 +28,25 @@ let handle_action t action =
 
 let implement t protocol query_to_action =
   Rpc.Rpc.implement protocol (fun () query ->
-      Throttle.enqueue t.sequencer (fun () -> handle_action t (query_to_action query)) )
+      Throttle.enqueue t.sequencer (fun () -> handle_action t (query_to_action query)))
 ;;
 
 let run_server t ~port =
   Log.Global.sexp [%message "starting server" (port : int)];
   let implementations =
     Rpc.Implementations.create_exn
-      ~implementations:[implement t Protocol.play Action.play]
+      ~implementations:[ implement t Protocol.play Action.play ]
       ~on_unknown_rpc:
         (`Call
           (fun _ ~rpc_tag ~version ->
-            Log.Global.sexp
-              [%message "unexpected RPC" (rpc_tag : string) (version : int)];
-            `Continue ))
+            Log.Global.sexp [%message "unexpected RPC" (rpc_tag : string) (version : int)];
+            `Continue))
   in
   let on_handshake_error =
     `Call
       (fun exn ->
         Log.Global.sexp [%message "handshake error" (exn : exn)];
-        Deferred.unit )
+        Deferred.unit)
   in
   let get_connection_state _ = () in
   let%bind server =
@@ -54,7 +55,7 @@ let run_server t ~port =
           transport
           ~connection_state:get_connection_state
           ~on_handshake_error
-          ~implementations )
+          ~implementations)
   in
   Tcp.Server.close_finished server
 ;;
@@ -71,7 +72,9 @@ let main =
           ; state =
               { games = ID.Game.Table.create ()
               ; players = ID.Player.Table.create ()
-              ; moves = ID.Move.Table.create () } }
+              ; moves = ID.Move.Table.create ()
+              }
+          }
         in
         run_server t ~port]
 ;;

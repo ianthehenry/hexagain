@@ -20,7 +20,7 @@ let make_websocket_transport reader writer =
   in
   let disconnected = Pipe.closed from_client in
   Clock_ns.every' ~stop:disconnected ping_interval (fun () ->
-      Pipe.write_if_open to_client ping );
+      Pipe.write_if_open to_client ping);
   let disconnect_event =
     Clock_ns.Event.run_after timeout_interval disconnect close_timeout
   in
@@ -33,32 +33,29 @@ let make_websocket_transport reader writer =
         | Close ->
           disconnect close_ack;
           None
-        | Binary ->
-          Some frame.content
+        | Binary -> Some frame.content
         | Ping ->
           Pipe.write_without_pushback to_client pong;
           None
-        | Pong ->
-          None
+        | Pong -> None
         | _ ->
           (* TODO: log something here? I don't expect anything else. *)
-          None )
+          None)
   in
   let strings_to_client =
     Pipe.create_writer (fun reader ->
         Pipe.transfer reader to_client ~f:(fun content ->
-            WS.Frame.create ~opcode:Binary ~content () ) )
+            WS.Frame.create ~opcode:Binary ~content ()))
   in
   let ws_log =
-    Log.create ~level:`Debug ~output:[Log.Output.stdout ()] ~on_error:`Raise
+    Log.create ~level:`Debug ~output:[ Log.Output.stdout () ] ~on_error:`Raise
   in
   (* TODO: auth? *)
   let server_finished =
     match%map WS.server ~log:ws_log ~app_to_ws ~ws_to_app ~reader ~writer () with
     | Error error ->
       Log.Global.sexp [%message "WS completed with error" (error : Error.t)]
-    | Ok () ->
-      ()
+    | Ok () -> ()
   in
   let transport =
     Rpc_kernel.Pipe_transport.create
@@ -77,5 +74,5 @@ let serve ~port ~f =
         (fun _ exn -> Log.Global.sexp [%message "web TCP handler error" (exn : exn)]))
     (fun _ reader writer ->
       let server_finished, transport = make_websocket_transport reader writer in
-      Deferred.any_unit [server_finished; f transport] )
+      Deferred.any_unit [ server_finished; f transport ])
 ;;

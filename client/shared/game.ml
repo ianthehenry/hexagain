@@ -9,22 +9,20 @@ type t =
   ; white_player : ID.Player.t
   ; stones : Location.t list
   ; move_ids : ID.Move.t list
-  ; winner : ID.Player.t option }
+  ; winner : ID.Player.t option
+  }
 [@@deriving sexp_of, bin_io]
 
 (* TODO: this should take into account handicap *)
-let whose_turn_is_it {white_player; black_player; stones; _} =
+let whose_turn_is_it { white_player; black_player; stones; _ } =
   match List.length stones % 2 with
-  | 0 ->
-    black_player
-  | 1 ->
-    white_player
-  | _ ->
-    assert false
+  | 0 -> black_player
+  | 1 -> white_player
+  | _ -> assert false
 ;;
 
 let other_player_exn game player =
-  let {white_player; black_player; _} = game in
+  let { white_player; black_player; _ } = game in
   if [%compare.equal: ID.Player.t] player white_player
   then black_player
   else if [%compare.equal: ID.Player.t] player black_player
@@ -33,7 +31,7 @@ let other_player_exn game player =
 ;;
 
 (* TODO: this should take into account handicap *)
-let winning_player {stones; config; _} =
+let winning_player { stones; config; _ } =
   if List.length stones / 2 < config.size
   then None
   else (* slow algorithm to find winner *)
@@ -41,11 +39,9 @@ let winning_player {stones; config; _} =
 ;;
 
 let apply_action t = function
-  | Action.Swap ->
-    {t with black_player = t.white_player; white_player = t.black_player}
+  | Action.Swap -> { t with black_player = t.white_player; white_player = t.black_player }
   | Action.Place_stone location ->
-    let t' = {t with stones = location :: t.stones} in
-    {t' with winner = winning_player t'}
-  | Action.Resign ->
-    {t with winner = Some (other_player_exn t (whose_turn_is_it t))}
+    let t' = { t with stones = location :: t.stones } in
+    { t' with winner = winning_player t' }
+  | Action.Resign -> { t with winner = Some (other_player_exn t (whose_turn_is_it t)) }
 ;;

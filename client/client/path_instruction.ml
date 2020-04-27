@@ -10,8 +10,7 @@ let to_svg_string t =
   String.concat
     ~sep:" "
     (match t with
-    | Move {Point.x; y} ->
-      ["M"; strf x; strf y]
-    | Quadratic ({Point.x; y}, {Point.x = x'; y = y'}) ->
-      ["Q"; strf x; strf y; ","; strf x'; strf y'])
+    | Move { Point.x; y } -> [ "M"; strf x; strf y ]
+    | Quadratic ({ Point.x; y }, { Point.x = x'; y = y' }) ->
+      [ "Q"; strf x; strf y; ","; strf x'; strf y' ])
 ;;
