@@ -6,40 +6,24 @@ Deployed to https://hexagain.com.
 
 ## Building the site
 
-Building the site requires `hugo` and `postcss-cli`. Install `hugo` with your
-system package manager, and `postcss-cli` with `yarn`:
+*Most* of the dependencies are enumerated in `shell.nix`, so you can do this to
+get a working copy of the website:
 
 ```bash
-yarn global add postcss-cli
-yarn install
+$ nix-shell
+[nix-shell]$ hugo server
 ```
 
-It doesn't need to be installed globally, if you add `./node_modules/.bin` to
-your `PATH`.
-
-After that, you should be able to just run:
-
-```bash
-hugo server
-```
-
-And everything should work, because the generated JavaScript is checked in to
-the assets directory.
-
-## Changing the JavaScript
-
-This is trickier.
-
-You'll need to install `opam` with your system package manager, and probably run
-things like `opam init` and the environment configuration stuff. Then set up a
-"switch," a local package sandbox, for Hexagain.
+But the OCaml stuff is separate:
 
 ```bash
 cd app/
-opam switch create . 4.10.0
-eval $(opam env)
-opam switch import deps
+opam switch import deps --assume-depexts --switch .
+eval $(opam env --switch .)
 ```
+
+The `--assume-depexts` is necessary because `opam` doesn't detect that things
+are installed if you install them with Nix, for some reason.
 
 Wow! Everything worked and you got no errors! Great. No further questions. Let's
 get to work.

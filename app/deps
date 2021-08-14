@@ -1,135 +1,167 @@
 opam-version: "2.0"
-compiler: [
-  "base-bigarray.base"
-  "base-threads.base"
-  "base-unix.base"
-  "ocaml.4.10.0"
-  "ocaml-base-compiler.4.10.0"
-  "ocaml-config.1"
-]
+compiler: ["ocaml-base-compiler.4.12.0"]
 roots: [
-  "async_js.v0.13.0"
-  "async_kernel.v0.13.0"
-  "async_rpc_kernel.v0.13.0"
-  "core_kernel.v0.13.1"
-  "incr_dom.v0.13.0"
-  "js_of_ocaml-ppx.3.5.2"
-  "ocaml-base-compiler.4.10.0"
-  "ocamlformat.0.14.1"
-  "ppx_jane.v0.13.0"
-  "sexp_pretty.v0.13.0"
+  "async_js.v0.14.0"
+  "async_kernel.v0.14.0"
+  "async_rpc_kernel.v0.14.0"
+  "core_kernel.v0.14.1"
+  "dune.2.9.0"
+  "incr_dom.v0.14.0"
+  "js_of_ocaml.3.9.1"
+  "js_of_ocaml-ppx.3.9.1"
+  "merlin.4.3.1-412"
+  "ocaml-base-compiler.4.12.0"
+  "ocamlformat.0.19.0"
+  "ppx_jane.v0.14.0"
+  "sexp_pretty.v0.14.0"
+  "utop.2.7.0"
 ]
 installed: [
-  "astring.0.8.3"
-  "async_js.v0.13.0"
-  "async_kernel.v0.13.0"
-  "async_rpc_kernel.v0.13.0"
-  "base.v0.13.1"
+  "angstrom.0.15.0"
+  "astring.0.8.5"
+  "async_js.v0.14.0"
+  "async_kernel.v0.14.0"
+  "async_rpc_kernel.v0.14.0"
+  "base.v0.14.1"
   "base-bigarray.base"
   "base-bytes.base"
   "base-threads.base"
   "base-unix.base"
-  "base_bigstring.v0.13.0"
-  "base_quickcheck.v0.13.0"
-  "bin_prot.v0.13.0"
+  "base_bigstring.v0.14.0"
+  "base_quickcheck.v0.14.1"
+  "bigarray-compat.1.0.0"
+  "bigstringaf.0.8.0"
+  "bin_prot.v0.14.0"
   "biniou.1.2.1"
+  "camomile.1.0.2"
+  "charInfo_width.1.1.0"
   "cmdliner.1.0.4"
-  "conf-m4.1"
-  "core_kernel.v0.13.1"
-  "cppo.1.6.6"
-  "dune.2.5.1"
-  "dune-configurator.2.5.1"
-  "dune-private-libs.2.5.1"
+  "conf-pkg-config.2"
+  "core_kernel.v0.14.1"
+  "cppo.1.6.7"
+  "csexp.1.5.1"
+  "dot-merlin-reader.4.1"
+  "dune.2.9.0"
+  "dune-build-info.2.9.0"
+  "dune-configurator.2.9.0"
   "easy-format.1.3.2"
-  "fieldslib.v0.13.0"
-  "fix.20200131"
-  "fpath.0.7.2"
-  "incr_dom.v0.13.0"
-  "incr_map.v0.13.0"
-  "incr_select.v0.13.0"
-  "incremental.v0.13.0"
-  "jane-street-headers.v0.13.0"
-  "js_of_ocaml.3.5.2"
-  "js_of_ocaml-compiler.3.5.2"
-  "js_of_ocaml-ppx.3.5.2"
-  "jst-config.v0.13.0"
-  "lambdasoup.0.7.1"
-  "markup.0.8.2"
-  "menhir.20200211"
-  "menhirLib.20200211"
-  "menhirSdk.20200211"
-  "num.1.3"
-  "ocaml.4.10.0"
-  "ocaml-base-compiler.4.10.0"
-  "ocaml-compiler-libs.v0.12.1"
-  "ocaml-config.1"
-  "ocaml-migrate-parsetree.1.7.2"
+  "fieldslib.v0.14.0"
+  "fix.20201120"
+  "fpath.0.7.3"
+  "incr_dom.v0.14.0"
+  "incr_map.v0.14.0"
+  "incr_select.v0.14.0"
+  "incremental.v0.14.0"
+  "jane-street-headers.v0.14.0"
+  "js_of_ocaml.3.9.1"
+  "js_of_ocaml-compiler.3.9.1"
+  "js_of_ocaml-ppx.3.9.1"
+  "jst-config.v0.14.0"
+  "lambda-term.3.1.0"
+  "lambdasoup.0.7.2"
+  "lwt.5.4.1"
+  "lwt_log.1.1.1"
+  "lwt_react.1.1.4"
+  "markup.1.0.2"
+  "menhir.20210419"
+  "menhirLib.20210419"
+  "menhirSdk.20210419"
+  "merlin.4.3.1-412"
+  "mew.0.1.0"
+  "mew_vi.0.5.0"
+  "mmap.1.1.0"
+  "num.1.4"
+  "ocaml.4.12.0"
+  "ocaml-base-compiler.4.12.0"
+  "ocaml-compiler-libs.v0.12.3"
+  "ocaml-config.2"
+  "ocaml-migrate-parsetree.2.2.0"
+  "ocaml-options-vanilla.1"
+  "ocaml-syntax-shims.1.0.0"
   "ocamlbuild.0.14.0"
-  "ocamlfind.1.8.1"
-  "ocamlformat.0.14.1"
+  "ocamlfind.1.9.1"
+  "ocamlformat.0.19.0"
+  "ocp-indent.1.8.1"
+  "ocplib-endian.1.1"
   "octavius.1.2.2"
-  "odoc.1.5.0"
-  "parsexp.v0.13.0"
-  "ppx_assert.v0.13.0"
-  "ppx_base.v0.13.0"
-  "ppx_bench.v0.13.0"
-  "ppx_bin_prot.v0.13.0"
-  "ppx_cold.v0.13.0"
-  "ppx_compare.v0.13.0"
-  "ppx_custom_printf.v0.13.0"
+  "odoc-parser.0.9.0"
+  "parsexp.v0.14.1"
+  "ppx_assert.v0.14.0"
+  "ppx_base.v0.14.0"
+  "ppx_bench.v0.14.1"
+  "ppx_bin_prot.v0.14.0"
+  "ppx_cold.v0.14.0"
+  "ppx_compare.v0.14.0"
+  "ppx_custom_printf.v0.14.1"
   "ppx_derivers.1.2.1"
-  "ppx_enumerate.v0.13.0"
-  "ppx_expect.v0.13.0"
-  "ppx_fail.v0.13.0"
-  "ppx_fields_conv.v0.13.0"
-  "ppx_hash.v0.13.0"
-  "ppx_here.v0.13.0"
-  "ppx_inline_test.v0.13.1"
-  "ppx_jane.v0.13.0"
-  "ppx_js_style.v0.13.0"
-  "ppx_let.v0.13.0"
-  "ppx_module_timer.v0.13.0"
-  "ppx_optcomp.v0.13.0"
-  "ppx_optional.v0.13.0"
-  "ppx_pipebang.v0.13.0"
-  "ppx_sexp_conv.v0.13.0"
-  "ppx_sexp_message.v0.13.0"
-  "ppx_sexp_value.v0.13.0"
-  "ppx_stable.v0.13.0"
-  "ppx_tools_versioned.5.3.0"
-  "ppx_typerep_conv.v0.13.0"
-  "ppx_variants_conv.v0.13.0"
-  "ppxlib.0.13.0"
-  "protocol_version_header.v0.13.0"
+  "ppx_enumerate.v0.14.0"
+  "ppx_expect.v0.14.1"
+  "ppx_fields_conv.v0.14.2"
+  "ppx_fixed_literal.v0.14.0"
+  "ppx_hash.v0.14.0"
+  "ppx_here.v0.14.0"
+  "ppx_inline_test.v0.14.1"
+  "ppx_jane.v0.14.0"
+  "ppx_js_style.v0.14.1"
+  "ppx_let.v0.14.0"
+  "ppx_module_timer.v0.14.0"
+  "ppx_optcomp.v0.14.2"
+  "ppx_optional.v0.14.0"
+  "ppx_pattern_bind.v0.14.0"
+  "ppx_pipebang.v0.14.0"
+  "ppx_sexp_conv.v0.14.3"
+  "ppx_sexp_message.v0.14.1"
+  "ppx_sexp_value.v0.14.0"
+  "ppx_stable.v0.14.1"
+  "ppx_string.v0.14.1"
+  "ppx_typerep_conv.v0.14.2"
+  "ppx_variants_conv.v0.14.1"
+  "ppxlib.0.22.2"
+  "protocol_version_header.v0.14.0"
   "re.1.9.0"
+  "react.1.2.1"
   "result.1.5"
   "seq.base"
-  "sexp_pretty.v0.13.0"
-  "sexplib.v0.13.0"
-  "sexplib0.v0.13.0"
-  "splittable_random.v0.13.0"
-  "stdio.v0.13.0"
+  "sexp_pretty.v0.14.0"
+  "sexplib.v0.14.0"
+  "sexplib0.v0.14.0"
+  "splittable_random.v0.14.0"
+  "stdio.v0.14.0"
+  "stdlib-shims.0.3.0"
   "stringext.1.6.0"
-  "time_now.v0.13.0"
-  "topkg.1.0.1"
-  "typerep.v0.13.0"
-  "tyxml.4.4.0"
+  "time_now.v0.14.0"
+  "topkg.1.0.3"
+  "trie.1.0.0"
+  "typerep.v0.14.0"
+  "tyxml.4.5.0"
   "uchar.0.0.2"
-  "uri.3.1.0"
-  "uri-sexp.3.1.0"
+  "uri.4.2.0"
+  "uri-sexp.4.2.0"
+  "utop.2.7.0"
   "uucp.13.0.0"
   "uuseg.13.0.0"
   "uutf.1.0.2"
-  "variantslib.v0.13.0"
-  "virtual_dom.v0.13.0"
+  "variantslib.v0.14.0"
+  "virtual_dom.v0.14.0"
   "yojson.1.7.0"
+  "zed.3.1.0"
 ]
-pinned: ["incr_dom.v0.13.0" "js_of_ocaml.3.5.2"]
+pinned: [
+  "incr_dom.v0.14.0"
+  "js_of_ocaml.3.9.1"
+  "js_of_ocaml-compiler.3.9.1"
+  "js_of_ocaml-lwt.3.9.1"
+  "js_of_ocaml-ocamlbuild.3.9.1"
+  "js_of_ocaml-ppx.3.9.1"
+  "js_of_ocaml-ppx_deriving_json.3.9.1"
+  "js_of_ocaml-toplevel.3.9.1"
+  "js_of_ocaml-tyxml.3.9.1"
+]
 package "incr_dom" {
   opam-version: "2.0"
-  version: "v0.13.0"
+  version: "v0.14.0"
   synopsis: "A library for building dynamic webapps, using Js_of_ocaml"
-  description: """
+  description: """\
 The library is designed roughly on a model/view/controller model.
 Your application is built out of:
 
@@ -158,29 +190,29 @@ examples directory."""
   bug-reports: "https://github.com/janestreet/incr_dom/issues"
   depends: [
     "ocaml" {>= "4.08.0"}
-    "async_js" {>= "v0.13" & < "v0.14"}
-    "async_kernel" {>= "v0.13" & < "v0.14"}
-    "core_kernel" {>= "v0.13" & < "v0.14"}
-    "incr_map" {>= "v0.13" & < "v0.14"}
-    "incr_select" {>= "v0.13" & < "v0.14"}
-    "incremental" {>= "v0.13" & < "v0.14"}
-    "ppx_jane" {>= "v0.13" & < "v0.14"}
-    "virtual_dom" {>= "v0.13" & < "v0.14"}
-    "dune" {>= "1.5.1"}
+    "async_js" {>= "v0.14" & < "v0.15"}
+    "async_kernel" {>= "v0.14" & < "v0.15"}
+    "core_kernel" {>= "v0.14" & < "v0.15"}
+    "incr_map" {>= "v0.14" & < "v0.15"}
+    "incr_select" {>= "v0.14" & < "v0.15"}
+    "incremental" {>= "v0.14" & < "v0.15"}
+    "ppx_jane" {>= "v0.14" & < "v0.15"}
+    "virtual_dom" {>= "v0.14" & < "v0.15"}
+    "dune" {>= "2.0.0"}
     "js_of_ocaml" {>= "3.4.1"}
     "js_of_ocaml-ppx"
   ]
   build: ["dune" "build" "-p" name "-j" jobs]
   dev-repo: "git+https://github.com/janestreet/incr_dom.git"
   url {
-    src: "git+https://github.com/ianthehenry/incr_dom.git"
+    src: "git+ssh://git@github.com/ianthehenry/incr_dom.git"
   }
 }
 package "js_of_ocaml" {
   opam-version: "2.0"
-  version: "3.5.2"
+  version: "3.9.1"
   synopsis: "Compiler from OCaml bytecode to Javascript"
-  description: """
+  description: """\
 Js_of_ocaml is a compiler from OCaml bytecode to JavaScript.
 It makes it possible to run pure OCaml programs in JavaScript
 environment like browsers and Node.js"""
@@ -191,14 +223,194 @@ environment like browsers and Node.js"""
   depends: [
     "ocaml" {>= "4.02.0"}
     "dune" {>= "2.5"}
-    "ocaml-migrate-parsetree" {>= "1.4"}
-    "ppx_tools_versioned" {>= "5.2.3"}
+    "ppxlib" {>= "0.15.0"}
     "uchar"
     "js_of_ocaml-compiler" {= version}
   ]
   build: ["dune" "build" "-p" name "-j" jobs]
   dev-repo: "git+https://github.com/ocsigen/js_of_ocaml.git"
   url {
-    src: "git+https://github.com/ianthehenry/js_of_ocaml.git"
+    src: "git+ssh://git@github.com/ianthehenry/js_of_ocaml.git"
+  }
+}
+package "js_of_ocaml-compiler" {
+  opam-version: "2.0"
+  version: "3.9.1"
+  synopsis: "Compiler from OCaml bytecode to Javascript"
+  description: """\
+Js_of_ocaml is a compiler from OCaml bytecode to JavaScript.
+It makes it possible to run pure OCaml programs in JavaScript
+environment like browsers and Node.js"""
+  maintainer: "dev@ocsigen.org"
+  authors: "Ocsigen team"
+  homepage: "http://ocsigen.github.io/js_of_ocaml"
+  bug-reports: "https://github.com/ocsigen/js_of_ocaml/issues"
+  depends: [
+    "ocaml" {>= "4.02.0"}
+    "dune" {>= "2.5"}
+    "ppx_expect" {with-test & >= "v0.12.0"}
+    "cmdliner"
+    "menhir"
+    "ppxlib" {>= "0.15.0"}
+    "yojson"
+  ]
+  depopts: ["ocamlfind"]
+  conflicts: [
+    "ocamlfind" {< "1.5.1"}
+    "js_of_ocaml" {< "3.0"}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/ocsigen/js_of_ocaml.git"
+  url {
+    src: "git+ssh://git@github.com/ianthehenry/js_of_ocaml.git"
+  }
+}
+package "js_of_ocaml-lwt" {
+  opam-version: "2.0"
+  version: "3.9.1"
+  synopsis: "Compiler from OCaml bytecode to Javascript"
+  description: """\
+Js_of_ocaml is a compiler from OCaml bytecode to JavaScript.
+It makes it possible to run pure OCaml programs in JavaScript
+environment like browsers and Node.js"""
+  maintainer: "dev@ocsigen.org"
+  authors: "Ocsigen team"
+  homepage: "http://ocsigen.github.io/js_of_ocaml"
+  bug-reports: "https://github.com/ocsigen/js_of_ocaml/issues"
+  depends: [
+    "ocaml" {>= "4.02.0"}
+    "dune" {>= "2.5"}
+    "lwt" {>= "2.4.4"}
+    "js_of_ocaml" {= version}
+    "js_of_ocaml-ppx" {= version}
+  ]
+  depopts: ["graphics" "lwt_log"]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/ocsigen/js_of_ocaml.git"
+  url {
+    src: "git+ssh://git@github.com/ianthehenry/js_of_ocaml.git"
+  }
+}
+package "js_of_ocaml-ocamlbuild" {
+  opam-version: "2.0"
+  version: "3.9.1"
+  synopsis: "Compiler from OCaml bytecode to Javascript"
+  description: """\
+Js_of_ocaml is a compiler from OCaml bytecode to JavaScript.
+It makes it possible to run pure OCaml programs in JavaScript
+environment like browsers and Node.js"""
+  maintainer: "dev@ocsigen.org"
+  authors: "Ocsigen team"
+  homepage: "http://ocsigen.github.io/js_of_ocaml"
+  bug-reports: "https://github.com/ocsigen/js_of_ocaml/issues"
+  depends: [
+    "ocaml" {>= "4.03.0"}
+    "dune" {>= "2.5"}
+    "ocamlbuild"
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/ocsigen/js_of_ocaml.git"
+  url {
+    src: "git+ssh://git@github.com/ianthehenry/js_of_ocaml.git"
+  }
+}
+package "js_of_ocaml-ppx" {
+  opam-version: "2.0"
+  version: "3.9.1"
+  synopsis: "Compiler from OCaml bytecode to Javascript"
+  description: """\
+Js_of_ocaml is a compiler from OCaml bytecode to JavaScript.
+It makes it possible to run pure OCaml programs in JavaScript
+environment like browsers and Node.js"""
+  maintainer: "dev@ocsigen.org"
+  authors: "Ocsigen team"
+  homepage: "http://ocsigen.github.io/js_of_ocaml"
+  bug-reports: "https://github.com/ocsigen/js_of_ocaml/issues"
+  depends: [
+    "ocaml" {>= "4.02.0"}
+    "dune" {>= "2.5"}
+    "ppxlib" {>= "0.15.0"}
+    "js_of_ocaml" {= version}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/ocsigen/js_of_ocaml.git"
+  url {
+    src: "git+ssh://git@github.com/ianthehenry/js_of_ocaml.git"
+  }
+}
+package "js_of_ocaml-ppx_deriving_json" {
+  opam-version: "2.0"
+  version: "3.9.1"
+  synopsis: "Compiler from OCaml bytecode to Javascript"
+  description: """\
+Js_of_ocaml is a compiler from OCaml bytecode to JavaScript.
+It makes it possible to run pure OCaml programs in JavaScript
+environment like browsers and Node.js"""
+  maintainer: "dev@ocsigen.org"
+  authors: "Ocsigen team"
+  homepage: "http://ocsigen.github.io/js_of_ocaml"
+  bug-reports: "https://github.com/ocsigen/js_of_ocaml/issues"
+  depends: [
+    "ocaml" {>= "4.04.1"}
+    "dune" {>= "2.5"}
+    "js_of_ocaml" {= version}
+    "ppxlib" {>= "0.15.0"}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/ocsigen/js_of_ocaml.git"
+  url {
+    src: "git+ssh://git@github.com/ianthehenry/js_of_ocaml.git"
+  }
+}
+package "js_of_ocaml-toplevel" {
+  opam-version: "2.0"
+  version: "3.9.1"
+  synopsis: "Compiler from OCaml bytecode to Javascript"
+  description: """\
+Js_of_ocaml is a compiler from OCaml bytecode to JavaScript.
+It makes it possible to run pure OCaml programs in JavaScript
+environment like browsers and Node.js"""
+  maintainer: "dev@ocsigen.org"
+  authors: "Ocsigen team"
+  homepage: "http://ocsigen.github.io/js_of_ocaml"
+  bug-reports: "https://github.com/ocsigen/js_of_ocaml/issues"
+  depends: [
+    "ocaml" {>= "4.02.0"}
+    "dune" {>= "2.5"}
+    "ocamlfind" {>= "1.5.1"}
+    "js_of_ocaml-compiler" {= version}
+    "js_of_ocaml-ppx" {= version}
+    "js_of_ocaml" {= version}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/ocsigen/js_of_ocaml.git"
+  url {
+    src: "git+ssh://git@github.com/ianthehenry/js_of_ocaml.git"
+  }
+}
+package "js_of_ocaml-tyxml" {
+  opam-version: "2.0"
+  version: "3.9.1"
+  synopsis: "Compiler from OCaml bytecode to Javascript"
+  description: """\
+Js_of_ocaml is a compiler from OCaml bytecode to JavaScript.
+It makes it possible to run pure OCaml programs in JavaScript
+environment like browsers and Node.js"""
+  maintainer: "dev@ocsigen.org"
+  authors: "Ocsigen team"
+  homepage: "http://ocsigen.github.io/js_of_ocaml"
+  bug-reports: "https://github.com/ocsigen/js_of_ocaml/issues"
+  depends: [
+    "ocaml" {>= "4.02.0"}
+    "dune" {>= "2.5"}
+    "tyxml" {>= "4.3"}
+    "reactiveData" {>= "0.2"}
+    "js_of_ocaml" {= version}
+    "js_of_ocaml-ppx" {= version}
+  ]
+  build: ["dune" "build" "-p" name "-j" jobs]
+  dev-repo: "git+https://github.com/ocsigen/js_of_ocaml.git"
+  url {
+    src: "git+ssh://git@github.com/ianthehenry/js_of_ocaml.git"
   }
 }

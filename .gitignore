@@ -1,9 +1,3 @@
 resources/
 public/
 .DS_Store
-.merlin
-.bsb.lock
-*.bs.js
-npm-debug.log
-client/_build/
-node_modules/
